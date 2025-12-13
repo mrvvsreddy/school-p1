@@ -6,25 +6,24 @@ import Link from "next/link";
 
 const footerLinks = {
     quickLinks: [
-        { name: "About Us", href: "#about" },
-        { name: "Academics", href: "#academics" },
-        { name: "Facilities", href: "#facilities" },
-        { name: "Activities", href: "#activities" },
-        { name: "Admissions", href: "#admissions" },
+        { name: "About Us", href: "/about" },
+        { name: "Academics", href: "/academics" },
+        { name: "Facilities", href: "/facilities" },
+        { name: "Activities", href: "/activities" },
+        { name: "Admissions", href: "/admissions" },
     ],
-    grades: [
-        { name: "Primary (1-5)", href: "#" },
-        { name: "Middle School (6-8)", href: "#" },
-        { name: "High School (9-10)", href: "#" },
-        { name: "Curriculum", href: "#" },
-        { name: "Academic Calendar", href: "#" },
+    academics: [
+        { name: "Primary (1-5)", href: "/academics" },
+        { name: "Middle School (6-8)", href: "/academics" },
+        { name: "High School (9-10)", href: "/academics" },
+        { name: "Curriculum", href: "/academics" },
+        { name: "Academic Calendar", href: "/calendar" },
     ],
     resources: [
-        { name: "Student Portal", href: "#" },
-        { name: "Parent Corner", href: "#" },
-        { name: "Fee Structure", href: "#" },
-        { name: "Transport", href: "#" },
-        { name: "Gallery", href: "#" },
+        { name: "Contact Us", href: "/contact" },
+        { name: "Fee Structure", href: "/admissions" },
+        { name: "Transport", href: "/transport" },
+        { name: "Gallery", href: "/gallery" },
     ],
 };
 
@@ -125,16 +124,7 @@ export default function Footer() {
                     >
                         <div className="flex items-center gap-3 mb-6">
                             <div className="w-12 h-12 rounded-full border-2 border-[#C4A35A] flex items-center justify-center">
-                                <svg
-                                    viewBox="0 0 100 100"
-                                    className="w-8 h-8 text-[#C4A35A]"
-                                    fill="currentColor"
-                                >
-                                    <path d="M50 10 L60 30 H80 L65 45 L72 70 L50 55 L28 70 L35 45 L20 30 H40 Z" />
-                                    <rect x="35" y="60" width="30" height="5" />
-                                    <rect x="30" y="68" width="40" height="5" />
-                                    <rect x="25" y="76" width="50" height="8" />
-                                </svg>
+                                <span className="text-xl font-bold text-[#C4A35A]" style={{ fontFamily: "var(--font-playfair)" }}>B</span>
                             </div>
                             <div>
                                 <h3 className="text-lg font-semibold">BALAYEASU</h3>
@@ -183,7 +173,7 @@ export default function Footer() {
                         </ul>
                     </motion.div>
 
-                    {/* Grades */}
+                    {/* Academics */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -194,7 +184,7 @@ export default function Footer() {
                             Academics
                         </h4>
                         <ul className="space-y-3">
-                            {footerLinks.grades.map((link) => (
+                            {footerLinks.academics.map((link) => (
                                 <li key={link.name}>
                                     <Link
                                         href={link.href}
@@ -241,14 +231,11 @@ export default function Footer() {
                             © {new Date().getFullYear()} Balayeasu School. All rights reserved.
                         </p>
                         <div className="flex gap-6">
-                            <Link href="#" className="text-[#666] hover:text-[#C4A35A] text-sm transition-colors">
+                            <Link href="/privacy" className="text-[#666] hover:text-[#C4A35A] text-sm transition-colors">
                                 Privacy Policy
                             </Link>
-                            <Link href="#" className="text-[#666] hover:text-[#C4A35A] text-sm transition-colors">
+                            <Link href="/terms" className="text-[#666] hover:text-[#C4A35A] text-sm transition-colors">
                                 Terms of Service
-                            </Link>
-                            <Link href="#" className="text-[#666] hover:text-[#C4A35A] text-sm transition-colors">
-                                Sitemap
                             </Link>
                         </div>
                     </div>

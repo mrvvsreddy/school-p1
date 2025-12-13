@@ -5,12 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 const navLinks = [
-    { name: "About", href: "#about" },
-    { name: "Academics", href: "#academics" },
-    { name: "Facilities", href: "#facilities" },
-    { name: "Activities", href: "#activities" },
-    { name: "Admissions", href: "#admissions" },
-    { name: "Contact", href: "#contact" },
+    { name: "About", href: "/about" },
+    { name: "Academics", href: "/academics" },
+    { name: "Facilities", href: "/facilities" },
+    { name: "Activities", href: "/activities" },
+    { name: "Admissions", href: "/admissions" },
+    { name: "Contact", href: "/contact" },
 ];
 
 export default function Header() {
@@ -32,8 +32,8 @@ export default function Header() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
             className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-                ? "bg-white/95 backdrop-blur-md shadow-lg py-3"
-                : "bg-transparent py-5"
+                    ? "bg-white/95 backdrop-blur-md shadow-lg py-3"
+                    : "bg-transparent py-5"
                 }`}
         >
             <div className="container mx-auto px-6 flex items-center justify-between">
@@ -70,17 +70,13 @@ export default function Header() {
                                 } flex items-center justify-center`}
                         >
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <svg
-                                    viewBox="0 0 100 100"
-                                    className={`w-12 h-12 ${isScrolled ? "text-[#333]" : "text-white"
+                                <span
+                                    className={`text-2xl font-bold ${isScrolled ? "text-[#333]" : "text-white"
                                         }`}
-                                    fill="currentColor"
+                                    style={{ fontFamily: "var(--font-playfair)" }}
                                 >
-                                    <path d="M50 10 L60 30 H80 L65 45 L72 70 L50 55 L28 70 L35 45 L20 30 H40 Z" />
-                                    <rect x="35" y="60" width="30" height="5" />
-                                    <rect x="30" y="68" width="40" height="5" />
-                                    <rect x="25" y="76" width="50" height="8" />
-                                </svg>
+                                    B
+                                </span>
                             </div>
                         </div>
                         <span
