@@ -1,44 +1,57 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-
-const grades = [
-    {
-        level: "Primary School",
-        classes: "Class 1 - 5",
-        age: "6-10 years",
-        description: "Building strong foundations with interactive learning, basic literacy, numeracy, and creative exploration.",
-        subjects: ["English", "Hindi", "Mathematics", "EVS", "Art & Craft", "Computer Basics"],
-        color: "from-[#43a047] to-[#66bb6a]",
-    },
-    {
-        level: "Middle School",
-        classes: "Class 6 - 8",
-        age: "11-13 years",
-        description: "Developing critical thinking, scientific inquiry, and preparing students for advanced learning.",
-        subjects: ["English", "Hindi", "Mathematics", "Science", "Social Studies", "Computer Science"],
-        color: "from-[#1e88e5] to-[#42a5f5]",
-    },
-    {
-        level: "High School",
-        classes: "Class 9 - 10",
-        age: "14-16 years",
-        description: "Comprehensive board exam preparation with focus on academics, career guidance, and competitive exams.",
-        subjects: ["English", "Hindi", "Mathematics", "Science", "Social Science", "Computer Applications"],
-        color: "from-[#7b1fa2] to-[#ab47bc]",
-    },
-];
+import Image from "next/image";
+import { AcademicsData } from "@/data/types";
 
 export default function AcademicsPage() {
+    const [academics, setAcademics] = useState<AcademicsData | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetch("/api/content")
+            .then((res) => res.json())
+            .then((data) => {
+                setAcademics(data.academics);
+                setLoading(false);
+            })
+            .catch((err) => {
+                console.error(err);
+                setLoading(false);
+            });
+    }, []);
+
+    if (loading) {
+        return (
+            <main className="min-h-screen">
+                <Header />
+                <div className="pt-32 pb-16 flex items-center justify-center">
+                    <div className="text-gray-500">Loading...</div>
+                </div>
+            </main>
+        );
+    }
+
+    if (!academics) {
+        return (
+            <main className="min-h-screen">
+                <Header />
+                <div className="pt-32 pb-16 flex items-center justify-center">
+                    <div className="text-gray-500">Failed to load content</div>
+                </div>
+            </main>
+        );
+    }
+
     return (
         <main className="min-h-screen">
             <Header />
 
             {/* Hero Banner */}
-            <section className="pt-32 pb-16 bg-gradient-to-br from-[#004d40] via-[#00695c] to-[#00897b] relative overflow-hidden">
+            <section className="pt-32 pb-16 bg-gradient-to-br from-[#43a047] via-[#388e3c] to-[#2e7d32] relative overflow-hidden">
                 <div className="absolute inset-0 opacity-10">
                     <div className="absolute top-20 right-20 w-64 h-64 rounded-full bg-white/20" />
                     <div className="absolute bottom-10 left-10 w-96 h-96 rounded-full bg-white/20" />
@@ -63,46 +76,44 @@ export default function AcademicsPage() {
                 </div>
             </section>
 
-            {/* Grade Levels */}
+            {/* Academic Programs */}
             <section className="py-20 bg-white">
                 <div className="container mx-auto px-6">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl md:text-4xl font-semibold text-[#333]" style={{ fontFamily: "var(--font-playfair)" }}>
-                            Our Academic Programs
-                        </h2>
-                        <p className="text-[#666] mt-4 max-w-2xl mx-auto">
-                            Quality education from Class 1 to 10 with age-appropriate curriculum.
-                        </p>
-                    </div>
-
-                    <div className="space-y-8">
-                        {grades.map((grade, index) => (
+                    <div className="space-y-16">
+                        {academics.grades.map((grade, index) => (
                             <motion.div
-                                key={grade.level}
-                                initial={{ opacity: 0, y: 30 }}
+                                key={grade.title}
+                                initial={{ opacity: 0, y: 40 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
-                                transition={{ delay: index * 0.1 }}
-                                className="bg-white rounded-2xl shadow-lg overflow-hidden"
+                                className={`grid md:grid-cols-2 gap-8 items-center ${index % 2 === 1 ? 'md:flex-row-reverse' : ''}`}
                             >
-                                <div className={`bg-gradient-to-r ${grade.color} p-6 text-white`}>
-                                    <div className="flex flex-wrap items-center justify-between gap-4">
-                                        <div>
-                                            <h3 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>
-                                                {grade.level}
-                                            </h3>
-                                            <p className="text-white/80">{grade.classes} | Age: {grade.age}</p>
-                                        </div>
+                                <div className={index % 2 === 1 ? 'md:order-2' : ''}>
+                                    <div className="relative h-80 rounded-2xl overflow-hidden shadow-lg">
+                                        <Image
+                                            src={grade.image}
+                                            alt={grade.title}
+                                            fill
+                                            className="object-cover"
+                                        />
                                     </div>
                                 </div>
-                                <div className="p-6">
-                                    <p className="text-[#666] mb-4">{grade.description}</p>
+                                <div className={index % 2 === 1 ? 'md:order-1' : ''}>
+                                    <div className="mb-2">
+                                        <span className="px-3 py-1 bg-[#43a047]/10 text-[#43a047] rounded-full text-sm font-medium">
+                                            {grade.classes} | Age: {grade.age}
+                                        </span>
+                                    </div>
+                                    <h3 className="text-2xl md:text-3xl font-semibold text-[#333] mb-4" style={{ fontFamily: "var(--font-playfair)" }}>
+                                        {grade.title}
+                                    </h3>
+                                    <p className="text-[#666] mb-6">{grade.description}</p>
                                     <div>
-                                        <h4 className="font-semibold text-[#333] mb-2">Core Subjects:</h4>
+                                        <h4 className="font-semibold text-[#333] mb-3">Core Subjects:</h4>
                                         <div className="flex flex-wrap gap-2">
-                                            {grade.subjects.map((subject) => (
-                                                <span key={subject} className="px-3 py-1 bg-[#C4A35A]/10 text-[#C4A35A] rounded-full text-sm">
-                                                    {subject}
+                                            {grade.features.map((feature) => (
+                                                <span key={feature} className="px-4 py-2 bg-[#C4A35A]/10 text-[#C4A35A] rounded-full text-sm font-medium">
+                                                    {feature}
                                                 </span>
                                             ))}
                                         </div>
@@ -117,28 +128,20 @@ export default function AcademicsPage() {
             {/* Teaching Methodology */}
             <section className="py-20 bg-[#FAF8F5]">
                 <div className="container mx-auto px-6">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl md:text-4xl font-semibold text-[#333]" style={{ fontFamily: "var(--font-playfair)" }}>
-                            Teaching Methodology
-                        </h2>
-                    </div>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {[
-                            { title: "Interactive Learning", desc: "Smart boards and multimedia", icon: "📱" },
-                            { title: "Project-Based", desc: "Hands-on experience", icon: "🔬" },
-                            { title: "Individual Attention", desc: "Small class sizes", icon: "👤" },
-                            { title: "Regular Assessment", desc: "Track progress continuously", icon: "📊" },
-                        ].map((method) => (
+                    <h2 className="text-3xl md:text-4xl font-semibold text-[#333] text-center mb-12" style={{ fontFamily: "var(--font-playfair)" }}>
+                        Teaching Methodology
+                    </h2>
+                    <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {academics.methodologies.map((method) => (
                             <motion.div
-                                key={method.title}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
+                                key={method.name}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
-                                className="bg-white rounded-xl p-6 text-center shadow-md"
+                                className="bg-white rounded-xl p-6 text-center shadow-md hover:shadow-lg transition-shadow"
                             >
-                                <span className="text-3xl mb-3 block">{method.icon}</span>
-                                <h3 className="font-semibold text-[#333] mb-1">{method.title}</h3>
-                                <p className="text-[#666] text-sm">{method.desc}</p>
+                                <span className="text-4xl mb-3 block">{method.icon}</span>
+                                <h3 className="font-semibold text-[#333]">{method.name}</h3>
                             </motion.div>
                         ))}
                     </div>
@@ -153,19 +156,22 @@ export default function AcademicsPage() {
                             Academic Calendar 2024-25
                         </h2>
                         <div className="grid md:grid-cols-2 gap-6">
-                            {[
-                                { term: "First Term", dates: "April - September", exams: "September" },
-                                { term: "Second Term", dates: "October - March", exams: "March" },
-                            ].map((term) => (
-                                <div key={term.term} className="bg-[#FAF8F5] rounded-xl p-6">
+                            {academics.calendar.map((term) => (
+                                <motion.div
+                                    key={term.term}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    className="bg-[#FAF8F5] rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow"
+                                >
                                     <h3 className="text-xl font-semibold text-[#333] mb-4" style={{ fontFamily: "var(--font-playfair)" }}>
                                         {term.term}
                                     </h3>
                                     <div className="space-y-2 text-[#666]">
-                                        <p><span className="font-medium">Duration:</span> {term.dates}</p>
-                                        <p><span className="font-medium">Examinations:</span> {term.exams}</p>
+                                        <p><span className="font-medium text-[#333]">Duration:</span> {term.dates}</p>
+                                        <p><span className="font-medium text-[#333]">Examinations:</span> {term.exams}</p>
                                     </div>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
                     </div>

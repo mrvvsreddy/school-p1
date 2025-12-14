@@ -3,8 +3,15 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 
-const slides = [
+import { HeroSlide } from "@/data/types";
+
+interface HeroProps {
+    slides?: HeroSlide[];
+}
+
+const defaultSlides: HeroSlide[] = [
     {
         id: 1,
         title: "Nurturing Young Minds",
@@ -28,7 +35,7 @@ const slides = [
     },
 ];
 
-export default function Hero() {
+export default function Hero({ slides = defaultSlides }: HeroProps) {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
@@ -118,8 +125,7 @@ export default function Hero() {
                         transition={{ duration: 0.8, delay: 0.4 }}
                         className="flex flex-col sm:flex-row items-center justify-center gap-4"
                     >
-                        <button className="btn-primary">Admissions Open</button>
-                        <button className="btn-secondary">Virtual Tour</button>
+                        <Link href="/admissions/apply" className="btn-primary">Admissions Open</Link>
                     </motion.div>
                 </div>
             </div>
@@ -132,8 +138,8 @@ export default function Hero() {
                         onClick={() => goToSlide(index)}
                         aria-label={`Go to slide ${index + 1}`}
                         className={`h-3 rounded-full transition-all duration-300 cursor-pointer ${index === currentSlide
-                                ? "bg-[#C4A35A] w-8"
-                                : "bg-white/50 hover:bg-white/70 w-3"
+                            ? "bg-[#C4A35A] w-8"
+                            : "bg-white/50 hover:bg-white/70 w-3"
                             }`}
                     />
                 ))}

@@ -7,38 +7,46 @@ import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-const facilities = [
-    {
-        id: 1,
-        title: "Spacious Playground",
-        description: "Large playground with modern equipment for outdoor games, physical education, and recreational activities.",
-        image: "/facility-playground.jpg",
-        features: ["Running Track", "Basketball Court", "Football Field", "Play Equipment"],
-    },
-    {
-        id: 2,
-        title: "Sports Complex",
-        description: "Indoor sports facilities including badminton, table tennis, yoga room, and gymnasium for all-weather activities.",
-        image: "/facility-sports.jpg",
-        features: ["Indoor Courts", "Gymnasium", "Yoga Hall", "Swimming Pool"],
-    },
-    {
-        id: 3,
-        title: "Modern Classrooms",
-        description: "Air-conditioned smart classrooms with digital boards, projectors, and comfortable seating for optimal learning.",
-        image: "/facility-classroom.jpg",
-        features: ["Smart Boards", "AC Rooms", "Library Corner", "Science Labs"],
-    },
-    {
-        id: 4,
-        title: "Computer Lab",
-        description: "State-of-the-art computer laboratory with latest systems, high-speed internet, and coding programs.",
-        image: "/facility-computer.jpg",
-        features: ["Latest Systems", "High-Speed Internet", "Coding Classes", "Digital Learning"],
-    },
-];
+import { FacilitiesData, Facility } from "@/data/types";
 
-const FacilityCard = ({ facility, index }: { facility: typeof facilities[0]; index: number }) => {
+interface FacilitiesProps {
+    data?: FacilitiesData;
+}
+
+const defaultData: FacilitiesData = {
+    list: [
+        {
+            id: 1,
+            title: "Spacious Playground",
+            description: "Large playground with modern equipment for outdoor games, physical education, and recreational activities.",
+            image: "/facility-playground.jpg",
+            features: ["Running Track", "Basketball Court", "Football Field", "Play Equipment"],
+        },
+        {
+            id: 2,
+            title: "Sports Complex",
+            description: "Indoor sports facilities including badminton, table tennis, yoga room, and gymnasium for all-weather activities.",
+            image: "/facility-sports.jpg",
+            features: ["Indoor Courts", "Gymnasium", "Yoga Hall", "Swimming Pool"],
+        },
+        {
+            id: 3,
+            title: "Modern Classrooms",
+            description: "Air-conditioned smart classrooms with digital boards, projectors, and comfortable seating for optimal learning.",
+            image: "/facility-classroom.jpg",
+            features: ["Smart Boards", "AC Rooms", "Library Corner", "Science Labs"],
+        },
+        {
+            id: 4,
+            title: "Computer Lab",
+            description: "State-of-the-art computer laboratory with latest systems, high-speed internet, and coding programs.",
+            image: "/facility-computer.jpg",
+            features: ["Latest Systems", "High-Speed Internet", "Coding Classes", "Digital Learning"],
+        },
+    ]
+};
+
+const FacilityCard = ({ facility, index }: { facility: Facility; index: number }) => {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: "-50px" });
 
@@ -94,7 +102,7 @@ const FacilityCard = ({ facility, index }: { facility: typeof facilities[0]; ind
     );
 };
 
-export default function Facilities() {
+export default function Facilities({ data = defaultData }: FacilitiesProps) {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -127,7 +135,7 @@ export default function Facilities() {
 
                 {/* Facilities Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {facilities.map((facility, index) => (
+                    {data.list.map((facility, index) => (
                         <FacilityCard key={facility.id} facility={facility} index={index} />
                     ))}
                 </div>

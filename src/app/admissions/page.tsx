@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -55,14 +56,18 @@ export default function AdmissionsPage() {
                     >
                         Join our family of learners. Admissions open for 2024-25.
                     </motion.p>
-                    <motion.button
+                    <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="mt-6 bg-white text-[#7b1fa2] px-8 py-3 rounded-full font-semibold hover:bg-[#FAF8F5] transition-colors"
                     >
-                        Apply Now
-                    </motion.button>
+                        <Link
+                            href="/admissions/apply"
+                            className="inline-block mt-6 bg-white text-[#7b1fa2] px-8 py-3 rounded-full font-semibold hover:bg-[#FAF8F5] transition-colors"
+                        >
+                            Apply Now
+                        </Link>
+                    </motion.div>
                 </div>
             </section>
 

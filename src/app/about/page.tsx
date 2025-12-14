@@ -1,15 +1,54 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { AboutData } from "@/data/types";
 
 export default function AboutPage() {
+  const [about, setAbout] = useState<AboutData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/content")
+      .then((res) => res.json())
+      .then((data) => {
+        setAbout(data.about);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen">
+        <Header />
+        <div className="pt-32 pb-16 flex items-center justify-center">
+          <div className="text-gray-500">Loading...</div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!about) {
+    return (
+      <main className="min-h-screen">
+        <Header />
+        <div className="pt-32 pb-16 flex items-center justify-center">
+          <div className="text-gray-500">Failed to load content</div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen">
       <Header />
-      
+
       {/* Hero Banner */}
       <section className="pt-32 pb-16 bg-gradient-to-br from-[#1a237e] via-[#283593] to-[#3949ab] relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
@@ -47,21 +86,11 @@ export default function AboutPage() {
             >
               <span className="text-[#C4A35A] font-medium text-sm uppercase tracking-wider">Our Story</span>
               <h2 className="text-3xl md:text-4xl font-semibold text-[#333] mt-2 mb-6" style={{ fontFamily: "var(--font-playfair)" }}>
-                25+ Years of Educational Excellence
+                {about.storyTitle}
               </h2>
-              <p className="text-[#666] mb-4">
-                Founded in 1999, Balayeasu School has been a beacon of quality education in our community. 
-                What started as a small school with just 50 students has grown into a premier educational 
-                institution serving over 1,500 students from Class 1 to 10.
-              </p>
-              <p className="text-[#666] mb-4">
-                Our journey has been marked by continuous innovation in teaching methods, infrastructure 
-                development, and a deep commitment to nurturing every child&apos;s potential.
-              </p>
-              <p className="text-[#666]">
-                Today, we stand proud as one of the leading schools in the region, known for our 
-                academic excellence, state-of-the-art facilities, and holistic approach to education.
-              </p>
+              <p className="text-[#666] mb-4">{about.storyIntro1}</p>
+              <p className="text-[#666] mb-4">{about.storyIntro2}</p>
+              <p className="text-[#666]">{about.storyIntro3}</p>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, x: 30 }}
@@ -71,14 +100,7 @@ export default function AboutPage() {
             >
               <h3 className="text-2xl font-semibold mb-6" style={{ fontFamily: "var(--font-playfair)" }}>Key Milestones</h3>
               <div className="space-y-4">
-                {[
-                  { year: "1999", event: "School Founded with 50 students" },
-                  { year: "2005", event: "Expanded to Class 10" },
-                  { year: "2010", event: "New campus with modern facilities" },
-                  { year: "2015", event: "100% pass rate achieved" },
-                  { year: "2020", event: "Digital learning integration" },
-                  { year: "2024", event: "1500+ students strong" },
-                ].map((milestone) => (
+                {about.milestones.map((milestone) => (
                   <div key={milestone.year} className="flex items-start gap-4">
                     <span className="bg-white/20 px-3 py-1 rounded-full text-sm font-bold">{milestone.year}</span>
                     <span className="text-white/90">{milestone.event}</span>
@@ -99,23 +121,7 @@ export default function AboutPage() {
             </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Our Mission",
-                icon: "🎯",
-                content: "To provide quality education that nurtures intellectual curiosity, builds character, and prepares students to be responsible citizens of tomorrow.",
-              },
-              {
-                title: "Our Vision",
-                icon: "👁️",
-                content: "To be a center of educational excellence where every child discovers their potential and develops the skills to succeed in a rapidly changing world.",
-              },
-              {
-                title: "Our Values",
-                icon: "💎",
-                content: "Integrity, Excellence, Respect, Innovation, and Community. These core values guide everything we do at Balayeasu School.",
-              },
-            ].map((item) => (
+            {about.foundation.map((item) => (
               <motion.div
                 key={item.title}
                 initial={{ opacity: 0, y: 20 }}
@@ -146,11 +152,7 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {[
-              { name: "Dr. Rajesh Kumar", role: "Principal", exp: "25+ years in education" },
-              { name: "Mrs. Sunita Sharma", role: "Vice Principal", exp: "20+ years in education" },
-              { name: "Mr. Anil Verma", role: "Academic Director", exp: "18+ years in education" },
-            ].map((leader) => (
+            {about.leadership.map((leader) => (
               <motion.div
                 key={leader.name}
                 initial={{ opacity: 0, y: 20 }}

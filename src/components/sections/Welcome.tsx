@@ -5,7 +5,25 @@ import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 
-export default function Welcome() {
+import { WelcomeData } from "@/data/types";
+
+interface WelcomeProps {
+    data?: WelcomeData;
+}
+
+const defaultData: WelcomeData = {
+    title: "Welcome to Balayeasu School",
+    intro1: "At Balayeasu School, we believe every child is unique and deserves the best education. Our school provides comprehensive education from Class 1 to 10, combining academic excellence with character building in a safe and nurturing environment.",
+    intro2: "With state-of-the-art facilities including a spacious playground, dedicated sports areas, and a variety of extracurricular activities, we ensure the holistic development of every student.",
+    stats: [
+        { number: "25+", label: "Years of Excellence" },
+        { number: "1500+", label: "Happy Students" },
+        { number: "80+", label: "Qualified Teachers" },
+        { number: "100%", label: "Pass Rate" },
+    ]
+};
+
+export default function Welcome({ data = defaultData }: WelcomeProps) {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -25,7 +43,7 @@ export default function Welcome() {
                         className="text-3xl md:text-4xl font-semibold text-[#333] mb-8"
                         style={{ fontFamily: "var(--font-playfair)" }}
                     >
-                        Welcome to Balayeasu School
+                        {data.title}
                     </motion.h2>
 
                     <motion.p
@@ -34,9 +52,7 @@ export default function Welcome() {
                         transition={{ duration: 0.6, delay: 0.2 }}
                         className="text-[#666] text-base md:text-lg leading-relaxed mb-6"
                     >
-                        At Balayeasu School, we believe every child is unique and deserves the best education.
-                        Our school provides comprehensive education from Class 1 to 10, combining academic
-                        excellence with character building in a safe and nurturing environment.
+                        {data.intro1}
                     </motion.p>
 
                     <motion.p
@@ -45,8 +61,7 @@ export default function Welcome() {
                         transition={{ duration: 0.6, delay: 0.3 }}
                         className="text-[#666] text-base md:text-lg leading-relaxed mb-10"
                     >
-                        With state-of-the-art facilities including a spacious playground, dedicated sports areas,
-                        and a variety of extracurricular activities, we ensure the holistic development of every student.
+                        {data.intro2}
                     </motion.p>
 
                     <motion.div
@@ -85,12 +100,7 @@ export default function Welcome() {
                     transition={{ duration: 0.6, delay: 0.5 }}
                     className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 max-w-4xl mx-auto"
                 >
-                    {[
-                        { number: "25+", label: "Years of Excellence" },
-                        { number: "1500+", label: "Happy Students" },
-                        { number: "80+", label: "Qualified Teachers" },
-                        { number: "100%", label: "Pass Rate" },
-                    ].map((stat, index) => (
+                    {data.stats.map((stat, index) => (
                         <motion.div
                             key={stat.label}
                             initial={{ opacity: 0, y: 20 }}
