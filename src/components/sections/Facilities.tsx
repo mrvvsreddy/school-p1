@@ -13,38 +13,7 @@ interface FacilitiesProps {
     data?: FacilitiesData;
 }
 
-const defaultData: FacilitiesData = {
-    list: [
-        {
-            id: 1,
-            title: "Spacious Playground",
-            description: "Large playground with modern equipment for outdoor games, physical education, and recreational activities.",
-            image: "/facility-playground.jpg",
-            features: ["Running Track", "Basketball Court", "Football Field", "Play Equipment"],
-        },
-        {
-            id: 2,
-            title: "Sports Complex",
-            description: "Indoor sports facilities including badminton, table tennis, yoga room, and gymnasium for all-weather activities.",
-            image: "/facility-sports.jpg",
-            features: ["Indoor Courts", "Gymnasium", "Yoga Hall", "Swimming Pool"],
-        },
-        {
-            id: 3,
-            title: "Modern Classrooms",
-            description: "Air-conditioned smart classrooms with digital boards, projectors, and comfortable seating for optimal learning.",
-            image: "/facility-classroom.jpg",
-            features: ["Smart Boards", "AC Rooms", "Library Corner", "Science Labs"],
-        },
-        {
-            id: 4,
-            title: "Computer Lab",
-            description: "State-of-the-art computer laboratory with latest systems, high-speed internet, and coding programs.",
-            image: "/facility-computer.jpg",
-            features: ["Latest Systems", "High-Speed Internet", "Coding Classes", "Digital Learning"],
-        },
-    ]
-};
+// Removed defaultData to ensure we use database content
 
 const FacilityCard = ({ facility, index }: { facility: Facility; index: number }) => {
     const ref = useRef(null);
@@ -102,9 +71,11 @@ const FacilityCard = ({ facility, index }: { facility: Facility; index: number }
     );
 };
 
-export default function Facilities({ data = defaultData }: FacilitiesProps) {
+export default function Facilities({ data }: FacilitiesProps) {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+    if (!data) return null;
 
     return (
         <section id="facilities" className="py-24 bg-white" ref={ref}>

@@ -11,21 +11,11 @@ interface WelcomeProps {
     data?: WelcomeData;
 }
 
-const defaultData: WelcomeData = {
-    title: "Welcome to Balayeasu School",
-    intro1: "At Balayeasu School, we believe every child is unique and deserves the best education. Our school provides comprehensive education from Class 1 to 10, combining academic excellence with character building in a safe and nurturing environment.",
-    intro2: "With state-of-the-art facilities including a spacious playground, dedicated sports areas, and a variety of extracurricular activities, we ensure the holistic development of every student.",
-    stats: [
-        { number: "25+", label: "Years of Excellence" },
-        { number: "1500+", label: "Happy Students" },
-        { number: "80+", label: "Qualified Teachers" },
-        { number: "100%", label: "Pass Rate" },
-    ]
-};
-
-export default function Welcome({ data = defaultData }: WelcomeProps) {
+export default function Welcome({ data }: WelcomeProps) {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+    if (!data) return null;
 
     return (
         <section id="about" className="py-24 bg-white" ref={ref}>

@@ -92,8 +92,8 @@ export interface SiteContent {
     facilities: FacilitiesData;
     academics: AcademicsData;
     about: AboutData;
-    examResults: any[];
-    timetables: any[];
+    examResults: unknown[];
+    timetables: unknown[];
     // Add flexible key for other potential sections
-    [key: string]: any;
+    [key: string]: unknown;
 }

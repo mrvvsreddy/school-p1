@@ -1,0 +1,9 @@
+SUPABASE_URL=https://vxlouapxryjosqizskxq.supabase.co
+SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4bG91YXB4cnlqb3NxaXpza3hxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTcwMTMyNCwiZXhwIjoyMDgxMjc3MzI0fQ.oGObOWgRhiAmmuRUfp6OE8QTMLcDw62-rtHZ50Zqyfk
+DATABASE_URL=postgresql://postgres.vxlouapxryjosqizskxq:@Reddy14321@aws-1-ap-south-1.pooler.supabase.com:6543/postgres
+
+# CORS Configuration - Comma-separated list of allowed origins
+ALLOWED_ORIGINS=http://localhost:3000,https://your-production-domain.com
+
+# JWT Secret Key - Change this to a secure random string in production
+JWT_SECRET_KEY=your-super-secret-jwt-key-change-this-in-production

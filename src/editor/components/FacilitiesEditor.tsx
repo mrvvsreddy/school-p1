@@ -14,7 +14,7 @@ export default function FacilitiesEditor({ content, onUpdate }: FacilitiesEditor
     // In case data is missing
     if (!data) return <div>No Facilities Data Found</div>;
 
-    const updateFacility = (index: number, field: keyof Facility, value: any) => {
+    const updateFacility = (index: number, field: keyof Facility, value: string | string[]) => {
         const newList = [...data.list];
         newList[index] = { ...newList[index], [field]: value };
         onUpdate({

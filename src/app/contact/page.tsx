@@ -6,7 +6,21 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PhoneInput from "@/components/PhoneInput";
 
+interface ContactInfo {
+    address: {
+        text: string;
+        googleMapUrl: string;
+    };
+    phones: string[];
+    emails: string[];
+    officeHours: {
+        weekdays: string;
+        weekend: string;
+    };
+}
+
 export default function ContactPage() {
+    const [contactInfo, setContactInfo] = React.useState<ContactInfo | null>(null);
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -15,6 +29,22 @@ export default function ContactPage() {
         subject: "",
         message: "",
     });
+
+    React.useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                const res = await fetch(`${apiUrl}/api/pages/contact`);
+                const json = await res.json();
+                if (json && json.info) {
+                    setContactInfo(json.info);
+                }
+            } catch (error) {
+                console.error("Failed to load contact info:", error);
+            }
+        };
+        fetchData();
+    }, []);
 
     const handlePhoneChange = (phone: string, dialCode: string) => {
         setFormData({ ...formData, phone, dialCode });
@@ -71,6 +101,7 @@ export default function ContactPage() {
                             </h2>
 
                             <div className="space-y-6">
+                                {/* Address */}
                                 <div className="flex items-start gap-4">
                                     <div className="w-12 h-12 bg-[#C4A35A]/10 rounded-xl flex items-center justify-center flex-shrink-0">
                                         <svg className="w-6 h-6 text-[#C4A35A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,37 +111,41 @@ export default function ContactPage() {
                                     </div>
                                     <div>
                                         <h3 className="font-semibold text-[#333] mb-1">Address</h3>
-                                        <p className="text-[#666]">123 Education Lane<br />City, State - 123456</p>
+                                        <p className="text-[#666] whitespace-pre-line">{contactInfo?.address?.text || "Loading..."}</p>
                                     </div>
                                 </div>
 
-                                {/* Phone & Email in 2 columns */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="flex items-start gap-4">
-                                        <div className="w-12 h-12 bg-[#C4A35A]/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <svg className="w-6 h-6 text-[#C4A35A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h3 className="font-semibold text-[#333] mb-1">Phone</h3>
-                                            <p className="text-[#666]">+91 98765 43210<br />+91 12345 67890</p>
-                                        </div>
+                                {/* Phone */}
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 bg-[#C4A35A]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-6 h-6 text-[#C4A35A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                        </svg>
                                     </div>
-
-                                    <div className="flex items-start gap-4">
-                                        <div className="w-12 h-12 bg-[#C4A35A]/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <svg className="w-6 h-6 text-[#C4A35A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h3 className="font-semibold text-[#333] mb-1">Email</h3>
-                                            <p className="text-[#666]">info@balayeasuschool.edu<br />admissions@balayeasuschool.edu</p>
-                                        </div>
+                                    <div>
+                                        <h3 className="font-semibold text-[#333] mb-1">Phone</h3>
+                                        <p className="text-[#666]">
+                                            {contactInfo?.phones?.map((p) => <React.Fragment key={p}>{p}<br /></React.Fragment>) || "Loading..."}
+                                        </p>
                                     </div>
                                 </div>
 
+                                {/* Email */}
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 bg-[#C4A35A]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-6 h-6 text-[#C4A35A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-[#333] mb-1">Email</h3>
+                                        <p className="text-[#666]">
+                                            {contactInfo?.emails?.map((e) => <React.Fragment key={e}>{e}<br /></React.Fragment>) || "Loading..."}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Office Hours */}
                                 <div className="flex items-start gap-4">
                                     <div className="w-12 h-12 bg-[#C4A35A]/10 rounded-xl flex items-center justify-center flex-shrink-0">
                                         <svg className="w-6 h-6 text-[#C4A35A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,7 +154,10 @@ export default function ContactPage() {
                                     </div>
                                     <div>
                                         <h3 className="font-semibold text-[#333] mb-1">Office Hours</h3>
-                                        <p className="text-[#666]">Monday - Friday: 8:00 AM - 4:00 PM<br />Saturday: 9:00 AM - 1:00 PM</p>
+                                        <p className="text-[#666]">
+                                            {contactInfo?.officeHours?.weekdays}<br />
+                                            {contactInfo?.officeHours?.weekend}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -146,7 +184,7 @@ export default function ContactPage() {
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         />
                                     </div>
-                                    <div className="grid md:grid-cols-2 gap-4">
+                                    <div>
                                         <input
                                             type="email"
                                             placeholder="Email Address"
@@ -155,6 +193,8 @@ export default function ContactPage() {
                                             value={formData.email}
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                         />
+                                    </div>
+                                    <div>
                                         <PhoneInput
                                             value={formData.phone}
                                             onChange={handlePhoneChange}

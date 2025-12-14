@@ -2,16 +2,31 @@
 
 import React, { useState } from "react";
 
+interface Teacher {
+    id: string | number;
+    name: string;
+    subject: string;
+    department: string;
+    status: string;
+    dob: string;
+    address: string;
+    contact: string;
+    email: string;
+    joinDate: string;
+    salary: string | number;
+    bankAccount: string;
+}
+
 interface TeacherDetailModalProps {
-    teacher: any;
+    teacher: Teacher;
     onClose: () => void;
-    onEdit: (updatedTeacher: any) => void;
+    onEdit: (updatedTeacher: Teacher) => void;
 }
 
 export default function TeacherDetailModal({ teacher, onClose, onEdit }: TeacherDetailModalProps) {
     const [activeTab, setActiveTab] = useState<"Profile" | "Attendance" | "Finance">("Profile");
     const [isEditing, setIsEditing] = useState(false);
-    const [editForm, setEditForm] = useState(teacher ? { ...teacher } : {});
+    const [editForm, setEditForm] = useState<Teacher>(teacher ? { ...teacher } : {} as Teacher);
 
     if (!teacher) return null;
 
@@ -37,7 +52,7 @@ export default function TeacherDetailModal({ teacher, onClose, onEdit }: Teacher
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setEditForm((prev: any) => ({ ...prev, [name]: value }));
+        setEditForm((prev) => ({ ...prev, [name]: value }));
     };
 
     return (
@@ -77,7 +92,7 @@ export default function TeacherDetailModal({ teacher, onClose, onEdit }: Teacher
                         {["Profile", "Attendance", "Finance"].map((tab) => (
                             <button
                                 key={tab}
-                                onClick={() => setActiveTab(tab as any)}
+                                onClick={() => setActiveTab(tab as "Profile" | "Attendance" | "Finance")}
                                 className={`py-3 text-sm font-medium border-b-2 transition-all cursor-pointer ${activeTab === tab ? "border-[#C4A35A] text-[#C4A35A]" : "border-transparent text-gray-500 hover:text-gray-700"
                                     }`}
                             >
@@ -278,7 +293,7 @@ function DetailRow({ label, value }: { label: string, value: string }) {
     );
 }
 
-function EditInput({ label, value, onChange, name }: any) {
+function EditInput({ label, value, onChange, name }: { label: string; value: string | number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; name: string }) {
     return (
         <div>
             <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">{label}</label>

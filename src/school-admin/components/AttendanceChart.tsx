@@ -89,7 +89,14 @@ export default function AttendanceChart() {
     const gap = 16;
     const chartHeight = 200;
 
-    const handleMouseEnter = (e: React.MouseEvent, item: any) => {
+    interface AttendanceItem {
+        label: string;
+        male: number;
+        female: number;
+        total: number;
+    }
+
+    const handleMouseEnter = (e: React.MouseEvent, item: AttendanceItem) => {
         if (!containerRef.current) return;
         const containerRect = containerRef.current.getBoundingClientRect();
         const targetRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -124,8 +131,8 @@ export default function AttendanceChart() {
                                 key={f}
                                 onClick={() => setFilter(f)}
                                 className={`px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${filter === f
-                                        ? "bg-[#C4A35A] text-white"
-                                        : "text-gray-500 hover:text-gray-700"
+                                    ? "bg-[#C4A35A] text-white"
+                                    : "text-gray-500 hover:text-gray-700"
                                     }`}
                             >
                                 {f.charAt(0).toUpperCase() + f.slice(1)}

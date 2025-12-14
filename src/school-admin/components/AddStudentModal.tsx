@@ -2,9 +2,24 @@
 
 import React, { useState } from "react";
 
+interface StudentData {
+    name: string;
+    class: string;
+    rollNo: string;
+    status: string;
+    dob: string;
+    address: string;
+    contact: string;
+    parents: {
+        father: string;
+        mother: string;
+        phone: string;
+    };
+}
+
 interface AddStudentModalProps {
     onClose: () => void;
-    onAdd: (student: any) => void;
+    onAdd: (student: StudentData) => void;
 }
 
 export default function AddStudentModal({ onClose, onAdd }: AddStudentModalProps) {
@@ -120,16 +135,16 @@ export default function AddStudentModal({ onClose, onAdd }: AddStudentModalProps
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-[11px] font-semibold text-gray-600 mb-1">FATHER'S NAME</label>
+                                        <label className="block text-[11px] font-semibold text-gray-600 mb-1">FATHER&apos;S NAME</label>
                                         <input required name="parent.father" onChange={handleChange} className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#C4A35A]" placeholder="Name" />
                                     </div>
                                     <div>
-                                        <label className="block text-[11px] font-semibold text-gray-600 mb-1">MOTHER'S NAME</label>
+                                        <label className="block text-[11px] font-semibold text-gray-600 mb-1">MOTHER&apos;S NAME</label>
                                         <input required name="parent.mother" onChange={handleChange} className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#C4A35A]" placeholder="Name" />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-gray-600 mb-1">PARENT'S CONTACT (PRIMARY)</label>
+                                    <label className="block text-[11px] font-semibold text-gray-600 mb-1">PARENT&apos;S CONTACT (PRIMARY)</label>
                                     <input required name="parent.phone" onChange={handleChange} className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#C4A35A]" placeholder="+91 XXXXX XXXXX" />
                                 </div>
                             </div>

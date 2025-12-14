@@ -35,7 +35,7 @@ export default function WelcomePreviewPage() {
             if (event.data?.type === "WELCOME_PREVIEW_UPDATE" && event.data.data) {
                 const incoming = event.data.data;
                 // Handle both old format (intro1, intro2) and new format (paragraphs)
-                let paragraphs = incoming.paragraphs || [];
+                const paragraphs = incoming.paragraphs || [];
                 if (paragraphs.length === 0) {
                     if (incoming.intro1) paragraphs.push(incoming.intro1);
                     if (incoming.intro2) paragraphs.push(incoming.intro2);
@@ -93,7 +93,7 @@ export default function WelcomePreviewPage() {
                     >
                         {data.signatureImage ? (
                             <div className="h-16 mb-2">
-                                <img src={data.signatureImage} alt="Signature" className="h-full object-contain" />
+                                <Image src={data.signatureImage} alt="Signature" className="h-full object-contain" width={192} height={64} style={{ objectFit: 'contain' }} />
                             </div>
                         ) : (
                             <svg viewBox="0 0 200 60" className="w-48 h-16 text-[#333]" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -112,7 +112,7 @@ export default function WelcomePreviewPage() {
                     transition={{ duration: 0.6, delay: 0.5 }}
                     className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 max-w-4xl mx-auto"
                 >
-                    {(data.stats || defaultStats).map((stat, index) => (
+                    {(data.stats || defaultStats).map((stat) => (
                         <div key={stat.label} className="text-center">
                             <div className="text-3xl md:text-4xl font-bold text-[#C4A35A] mb-2" style={{ fontFamily: "var(--font-playfair)" }}>
                                 {stat.number}

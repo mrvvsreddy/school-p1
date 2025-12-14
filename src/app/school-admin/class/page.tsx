@@ -5,9 +5,26 @@ import { classes } from "@/school-admin/data/mockData";
 import ClassDetailModal from "@/school-admin/components/ClassDetailModal";
 import AddClassModal from "@/school-admin/components/AddClassModal";
 
+interface ClassData {
+    id: number;
+    name: string;
+    grade: string;
+    section: string;
+    classTeacher: string;
+    studentsCount: number;
+    capacity: number;
+    room: string;
+    attendance: {
+        today: number;
+        history: number[];
+    };
+    subjects: { name: string; teacher: string }[];
+    schedule: { time: string; subject: string }[];
+}
+
 export default function ClassesPage() {
-    const [classList, setClassList] = useState(classes);
-    const [selectedClass, setSelectedClass] = useState<any>(null);
+    const [classList, setClassList] = useState<ClassData[]>(classes);
+    const [selectedClass, setSelectedClass] = useState<ClassData | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -16,7 +33,7 @@ export default function ClassesPage() {
         cls.classTeacher.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const handleAddClass = (newClass: any) => {
+    const handleAddClass = (newClass: ClassData) => {
         const classWithMockData = {
             ...newClass,
             id: classList.length + 1,
@@ -117,7 +134,7 @@ export default function ClassesPage() {
                                             <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                                                 <div
                                                     className={`h-full rounded-full ${cls.attendance.today > 90 ? "bg-green-500" :
-                                                            cls.attendance.today > 75 ? "bg-yellow-500" : "bg-red-500"
+                                                        cls.attendance.today > 75 ? "bg-yellow-500" : "bg-red-500"
                                                         }`}
                                                     style={{ width: `${cls.attendance.today}%` }}
                                                 ></div>

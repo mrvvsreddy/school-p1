@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 
 interface PageData {
     id: string;
@@ -19,21 +20,78 @@ const pages: PageData[] = [
         name: "Homepage",
         description: "Edit Hero, Welcome, Facilities, and Playground sections",
         icon: "🏠",
-        route: "/editor/home"
+        route: "/editor/home",
+        image: "/hero-bg-1.jpg"
+    },
+    {
+        id: "header",
+        name: "Header",
+        description: "Edit navigation menu and logo",
+        icon: "📌",
+        route: "/editor/header"
+    },
+    {
+        id: "footer",
+        name: "Footer",
+        description: "Edit footer links, contact info, and social media",
+        icon: "📄",
+        route: "/editor/footer"
     },
     {
         id: "about",
         name: "About Page",
         description: "Edit school history, milestones, and leadership",
         icon: "📖",
-        route: "/editor/about"
+        route: "/editor/about",
+        image: "/hero-bg-2.jpg"
     },
     {
         id: "academics",
         name: "Academics",
         description: "Manage academic programs, grades, and calendar",
         icon: "🎓",
-        route: "/editor/academics"
+        route: "/editor/academics",
+        image: "/academic-middle.jpg"
+    },
+    {
+        id: "facilities",
+        name: "Facilities",
+        description: "Update campus facilities and infrastructure details",
+        icon: "🏫",
+        route: "/editor/facilities",
+        image: "/facility-playground.jpg"
+    },
+    {
+        id: "activities",
+        name: "Activities",
+        description: "Manage extracurricular activities and events",
+        icon: "🎨",
+        route: "/editor/activities",
+        image: "/activity-arts.jpg"
+    },
+    {
+        id: "admissions",
+        name: "Admissions",
+        description: "Edit admission process, documents, and fee structure",
+        icon: "📝",
+        route: "/editor/admissions",
+        image: "/facility-classroom.jpg"
+    },
+    {
+        id: "gallery",
+        name: "Gallery",
+        description: "Upload and organize school photo gallery",
+        icon: "🖼️",
+        route: "/editor/gallery",
+        image: "/hero-bg-3.jpg"
+    },
+    {
+        id: "contact",
+        name: "Contact Us",
+        description: "Update school contact info, address, and timings",
+        icon: "📞",
+        route: "/editor/contact",
+        image: "/facility-computer.jpg"
     }
 ];
 
@@ -54,13 +112,23 @@ export default function EditorHomepage() {
                 }
 
                 // Facilities - get first facility image
-                if (data.facilities?.list?.[0]?.image) {
-                    images.facilities = data.facilities.list[0].image;
+                if (data.facilities?.facilities?.[0]?.image) {
+                    images.facilities = data.facilities.facilities[0].image;
                 }
 
                 // Academics - get first grade image
                 if (data.academics?.grades?.[0]?.image) {
                     images.academics = data.academics.grades[0].image;
+                }
+
+                // Activities - get first activity image
+                if (data.activities?.activities?.[0]?.image) {
+                    images.activities = data.activities.activities[0].image;
+                }
+
+                // Gallery - get first image
+                if (data.gallery?.galleryImages?.[0]?.src) {
+                    images.gallery = data.gallery.galleryImages[0].src;
                 }
 
                 setPageImages(images);
@@ -133,11 +201,12 @@ export default function EditorHomepage() {
                                             <div className="absolute inset-0 flex items-center justify-center">
                                                 <div className="w-8 h-8 border-2 border-[#C4A35A]/30 border-t-[#C4A35A] rounded-full animate-spin"></div>
                                             </div>
-                                        ) : pageImages[page.id] ? (
-                                            <img
-                                                src={pageImages[page.id]}
+                                        ) : (pageImages[page.id] || page.image) ? (
+                                            <Image
+                                                src={(pageImages[page.id] || page.image)!}
                                                 alt={page.name}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                fill
+                                                className="object-cover group-hover:scale-105 transition-transform duration-500"
                                             />
                                         ) : (
                                             <div className="absolute inset-0 flex items-center justify-center">

@@ -6,17 +6,33 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 
-const galleryImages = [
-    { src: "/hero-bg-1.jpg", alt: "School Campus", category: "Campus" },
-    { src: "/facility-playground.jpg", alt: "Playground", category: "Facilities" },
-    { src: "/facility-sports.jpg", alt: "Sports Complex", category: "Sports" },
-    { src: "/facility-classroom.jpg", alt: "Classroom", category: "Academics" },
-    { src: "/facility-computer.jpg", alt: "Computer Lab", category: "Facilities" },
-    { src: "/hero-bg-2.jpg", alt: "Students Learning", category: "Academics" },
-    { src: "/hero-bg-3.jpg", alt: "Outdoor Activities", category: "Activities" },
-];
+interface GalleryImage {
+    src: string;
+    alt: string;
+    category: string;
+}
 
 export default function GalleryPage() {
+    const [images, setImages] = React.useState<GalleryImage[]>([]);
+
+    React.useEffect(() => {
+        const fetchImages = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                const res = await fetch(`${apiUrl}/api/pages/gallery`);
+                const json = await res.json();
+                if (json && json.images && json.images.list) {
+                    setImages(json.images.list);
+                }
+            } catch (error) {
+                console.error("Failed to load gallery:", error);
+            }
+        };
+        fetchImages();
+    }, []);
+
+    if (images.length === 0) return <div className="min-h-screen pt-32 text-center">Loading...</div>;
+
     return (
         <main className="min-h-screen">
             <Header />
@@ -51,7 +67,7 @@ export default function GalleryPage() {
             <section className="py-20 bg-white">
                 <div className="container mx-auto px-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {galleryImages.map((image, index) => (
+                        {images.map((image, index) => (
                             <motion.div
                                 key={index}
                                 initial={{ opacity: 0, y: 20 }}

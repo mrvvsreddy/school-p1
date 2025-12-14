@@ -12,10 +12,17 @@ export default function AcademicsPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch("/api/content")
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        fetch(`${apiUrl}/api/pages/academics`)
             .then((res) => res.json())
             .then((data) => {
-                setAcademics(data.academics);
+                // Map the new API structure to the expected AcademicsData shape
+                const mappedData = {
+                    grades: data.grades?.list || [],
+                    calendar: data.calendar?.list || [],
+                    methodologies: data.methodologies?.list || []
+                };
+                setAcademics(mappedData);
                 setLoading(false);
             })
             .catch((err) => {

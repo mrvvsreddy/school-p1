@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 // Types matching the About page structure
 interface Milestone {
@@ -69,29 +70,39 @@ export default function AboutEditorPage() {
     const previewUrl = "/preview/about";
     const sectionName = "About Page";
 
-    const sendPreviewData = () => {
+    const sendPreviewData = useCallback(() => {
         const message = { type: "ABOUT_PREVIEW_UPDATE", data };
         iframeRef.current?.contentWindow?.postMessage(message, "*");
         fullscreenIframeRef.current?.contentWindow?.postMessage(message, "*");
-    };
+    }, [data]);
 
     useEffect(() => {
-        fetch("/api/content").then(res => res.json()).then(content => {
-            const about = content.about || {};
-            setData({
-                storyTitle: about.storyTitle || defaultData.storyTitle,
-                storyIntro1: about.storyIntro1 || defaultData.storyIntro1,
-                storyIntro2: about.storyIntro2 || defaultData.storyIntro2,
-                storyIntro3: about.storyIntro3 || defaultData.storyIntro3,
-                milestones: about.milestones || [],
-                foundation: about.foundation || [],
-                leadership: about.leadership || []
-            });
-            setLoading(false);
-        }).catch(() => setLoading(false));
+        const fetchData = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                const res = await fetch(`${apiUrl}/api/pages/about`);
+                const content = await res.json();
+                const about = content.about || {};
+
+                setData({
+                    storyTitle: about.storyTitle || defaultData.storyTitle,
+                    storyIntro1: about.storyIntro1 || defaultData.storyIntro1,
+                    storyIntro2: about.storyIntro2 || defaultData.storyIntro2,
+                    storyIntro3: about.storyIntro3 || defaultData.storyIntro3,
+                    milestones: about.milestones || [],
+                    foundation: about.foundation || [],
+                    leadership: about.leadership || []
+                });
+            } catch (error) {
+                console.error("Failed to load about data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
     }, []);
 
-    useEffect(() => { if (!loading) sendPreviewData(); }, [data, loading]);
+    useEffect(() => { if (!loading) sendPreviewData(); }, [data, loading, sendPreviewData]);
 
     const [previewHeight, setPreviewHeight] = useState(2000);
 
@@ -102,7 +113,7 @@ export default function AboutEditorPage() {
         };
         window.addEventListener("message", handleMessage);
         return () => window.removeEventListener("message", handleMessage);
-    }, [data]);
+    }, [sendPreviewData]);
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => { if (!isResizing || !containerRef.current) return; const rect = containerRef.current.getBoundingClientRect(); setPreviewWidth(Math.min(Math.max(((rect.right - e.clientX) / rect.width) * 100, 25), 75)); };
@@ -114,14 +125,27 @@ export default function AboutEditorPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            const res = await fetch("/api/content", {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+            const res = await fetch(`${apiUrl}/api/pages/about/batch`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ about: data })
+                body: JSON.stringify({ sections: { about: data } })
             });
 
-            if (res.ok) { alert("Published!"); setPreviewKey(k => k + 1); } else alert("Error saving");
-        } catch { alert("Error saving"); } finally { setSaving(false); }
+            if (res.ok) {
+                alert("Published successfully!");
+                setPreviewKey(k => k + 1);
+            } else {
+                const error = await res.json();
+                alert(`Error saving: ${error.detail || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error("Save error:", error);
+            alert("Error saving");
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleImageUpload = async (index: number, file: File) => {
@@ -274,7 +298,7 @@ export default function AboutEditorPage() {
                                             <div className="flex gap-4 items-start">
                                                 <div className="w-20 h-20 bg-gray-100 rounded-full flex-shrink-0 overflow-hidden relative border border-gray-200 group">
                                                     {leader.image ? (
-                                                        <img src={leader.image} alt={leader.name} className="w-full h-full object-cover" />
+                                                        <Image src={leader.image} alt={leader.name} className="w-full h-full object-cover" fill style={{ objectFit: 'cover' }} />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Img</div>
                                                     )}

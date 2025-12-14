@@ -11,7 +11,7 @@ interface AboutEditorProps {
 export default function AboutEditor({ content, onUpdate }: AboutEditorProps) {
     const about = content.about;
 
-    const updateAbout = (field: string, value: any) => {
+    const updateAbout = (field: string, value: string | string[] | Milestone[] | Leader[] | FoundationItem[]) => {
         onUpdate({
             ...content,
             about: { ...about, [field]: value },

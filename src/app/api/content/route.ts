@@ -48,7 +48,7 @@ export async function POST(request: Request) {
             revalidatePath('/about');
             revalidatePath('/academics');
             revalidatePath('/facilities');
-        } catch (e) {
+        } catch {
             // Revalidation might fail in dev mode, that's ok
             console.log('Revalidation attempted');
         }
@@ -65,16 +65,27 @@ export async function POST(request: Request) {
 }
 
 // Helper function for deep merging objects
-function deepMerge(target: any, source: any): any {
+function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
     const output = { ...target };
 
     for (const key in source) {
-        if (source[key] instanceof Array) {
-            output[key] = source[key];
-        } else if (source[key] instanceof Object && key in target) {
-            output[key] = deepMerge(target[key], source[key]);
+        const sourceValue = source[key];
+        const targetValue = target[key];
+
+        if (sourceValue instanceof Array) {
+            output[key] = sourceValue;
+        } else if (
+            sourceValue instanceof Object &&
+            key in target &&
+            targetValue instanceof Object &&
+            !(targetValue instanceof Array)
+        ) {
+            output[key] = deepMerge(
+                targetValue as Record<string, unknown>,
+                sourceValue as Record<string, unknown>
+            );
         } else {
-            output[key] = source[key];
+            output[key] = sourceValue;
         }
     }
 

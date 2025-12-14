@@ -11,37 +11,14 @@ interface HeroProps {
     slides?: HeroSlide[];
 }
 
-const defaultSlides: HeroSlide[] = [
-    {
-        id: 1,
-        title: "Nurturing Young Minds",
-        subtitle:
-            "Providing quality education from Class 1 to 10 with a perfect blend of academics, sports, and extracurricular activities. Building tomorrow's leaders today.",
-        image: "/hero-bg-1.jpg",
-    },
-    {
-        id: 2,
-        title: "Excellence in Learning",
-        subtitle:
-            "Our experienced faculty and modern teaching methods ensure every child reaches their full potential in a nurturing environment.",
-        image: "/hero-bg-2.jpg",
-    },
-    {
-        id: 3,
-        title: "Beyond Academics",
-        subtitle:
-            "State-of-the-art playground, sports facilities, and diverse extracurricular activities for holistic development.",
-        image: "/hero-bg-3.jpg",
-    },
-];
-
-export default function Hero({ slides = defaultSlides }: HeroProps) {
+export default function Hero({ slides }: HeroProps) {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
     const nextSlide = useCallback(() => {
+        if (!slides || slides.length === 0) return;
         setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, []);
+    }, [slides]);
 
     const goToSlide = (index: number) => {
         setCurrentSlide(index);
@@ -57,14 +34,16 @@ export default function Hero({ slides = defaultSlides }: HeroProps) {
     };
 
     useEffect(() => {
-        if (!isAutoPlaying) return;
+        if (!isAutoPlaying || !slides || slides.length === 0) return;
 
         const timer = setInterval(() => {
             nextSlide();
         }, 5000);
 
         return () => clearInterval(timer);
-    }, [isAutoPlaying, nextSlide]);
+    }, [isAutoPlaying, nextSlide, slides]);
+
+    if (!slides || slides.length === 0) return null;
 
     return (
         <section id="home" className="relative h-screen min-h-[700px] overflow-hidden bg-[#1a1a1a]">

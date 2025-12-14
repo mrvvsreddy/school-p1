@@ -5,13 +5,29 @@ import { recentStudents } from "@/school-admin/data/mockData";
 import StudentDetailModal from "@/school-admin/components/StudentDetailModal";
 import AddStudentModal from "@/school-admin/components/AddStudentModal";
 
+interface Student {
+    id: number;
+    name: string;
+    class: string;
+    rollNo: string;
+    status: string;
+    dob: string;
+    address: string;
+    contact: string;
+    parents: {
+        father: string;
+        mother: string;
+        phone: string;
+    };
+}
+
 export default function StudentsPage() {
     // State
-    const [students, setStudents] = useState<any[]>(recentStudents);
+    const [students, setStudents] = useState<Student[]>(recentStudents);
     const [searchQuery, setSearchQuery] = useState("");
     const [classFilter, setClassFilter] = useState("All");
     const [statusFilter, setStatusFilter] = useState("All"); // All, Present, Absent, Leave
-    const [selectedStudent, setSelectedStudent] = useState<any>(null);
+    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     // Derived Data
@@ -31,8 +47,8 @@ export default function StudentsPage() {
     });
 
     // Handlers
-    const handleAddStudent = (newStudent: any) => {
-        const studentWithId = { ...newStudent, id: students.length + 1 };
+    const handleAddStudent = (newStudent: Partial<Student>) => {
+        const studentWithId = { ...newStudent, id: students.length + 1 } as Student;
         setStudents([...students, studentWithId]);
     };
 
@@ -70,8 +86,8 @@ export default function StudentsPage() {
                         key={stat.label}
                         onClick={() => handleStatClick(stat.filter)}
                         className={`bg-white rounded-xl p-4 shadow-sm border transition-all cursor-pointer ${statusFilter === stat.filter
-                                ? "border-[#C4A35A] ring-1 ring-[#C4A35A] bg-[#C4A35A]/5"
-                                : "border-gray-100 hover:border-[#C4A35A]/50"
+                            ? "border-[#C4A35A] ring-1 ring-[#C4A35A] bg-[#C4A35A]/5"
+                            : "border-gray-100 hover:border-[#C4A35A]/50"
                             }`}
                     >
                         <div className="flex items-center justify-between">
@@ -167,10 +183,10 @@ export default function StudentsPage() {
                                     <td className="px-6 py-4 text-sm text-gray-600">{student.contact || "N/A"}</td>
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${student.status === "Present"
-                                                ? "bg-green-50 text-green-700 ring-1 ring-green-600/20"
-                                                : student.status === "Absent"
-                                                    ? "bg-red-50 text-red-700 ring-1 ring-red-600/20"
-                                                    : "bg-yellow-50 text-yellow-700 ring-1 ring-yellow-600/20"
+                                            ? "bg-green-50 text-green-700 ring-1 ring-green-600/20"
+                                            : student.status === "Absent"
+                                                ? "bg-red-50 text-red-700 ring-1 ring-red-600/20"
+                                                : "bg-yellow-50 text-yellow-700 ring-1 ring-yellow-600/20"
                                             }`}>
                                             <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${student.status === "Present" ? "bg-green-600" : student.status === "Absent" ? "bg-red-600" : "bg-yellow-600"
                                                 }`}></span>
@@ -192,7 +208,7 @@ export default function StudentsPage() {
 
             {/* Modals */}
             <StudentDetailModal
-                student={selectedStudent}
+                student={selectedStudent!}
                 onClose={() => setSelectedStudent(null)}
                 onEdit={() => alert("Edit functionality coming soon")}
             />

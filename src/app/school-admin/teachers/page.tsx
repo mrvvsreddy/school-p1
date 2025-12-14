@@ -5,22 +5,32 @@ import { recentTeachers } from "@/school-admin/data/mockData";
 import TeacherDetailModal from "@/school-admin/components/TeacherDetailModal";
 import AddTeacherModal from "@/school-admin/components/AddTeacherModal";
 
+interface Teacher {
+    id: number;
+    name: string;
+    subject: string;
+    department: string;
+    status: string;
+    dob: string;
+    address: string;
+    contact: string;
+    email: string;
+    joinDate: string;
+    salary: string | number;
+    bankAccount: string;
+}
+
 export default function TeachersPage() {
     // State
-    const [teachers, setTeachers] = useState<any[]>(recentTeachers);
+    const [teachers, setTeachers] = useState<Teacher[]>(recentTeachers);
     const [searchQuery, setSearchQuery] = useState("");
     const [deptFilter, setDeptFilter] = useState("All");
     const [statusFilter, setStatusFilter] = useState("All");
-    const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
+    const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     // Derived Data
     const totalTeachers = teachers.length;
-    const presentToday = teachers.filter(t => t.status === "Active").length; // Assuming Active implies present for simplicity or map status
-    // To match stats exactly, let's assume 'Active' = Present for now, or introduce daily status. 
-    // Mock data status is 'Active', 'On Leave'. Let's map Active -> Present-like behaviour, On Leave -> Leave.
-    // For 'Absent', we don't have explicit status in mock data, let's assume 0 or derived.
-    // Let's stick to the mock statuses: Active, On Leave.
     const activeTeachers = teachers.filter(t => t.status === "Active").length;
     const onLeave = teachers.filter(t => t.status === "On Leave").length;
     const absentToday = 0; // Placeholder
@@ -38,8 +48,8 @@ export default function TeachersPage() {
         return matchesSearch && matchesDept && matchesStatus;
     });
 
-    const handleAddTeacher = (newTeacher: any) => {
-        const teacherWithId = { ...newTeacher, id: teachers.length + 1 };
+    const handleAddTeacher = (newTeacher: Partial<Teacher>) => {
+        const teacherWithId = { ...newTeacher, id: teachers.length + 1 } as Teacher;
         setTeachers([...teachers, teacherWithId]);
     };
 
@@ -77,8 +87,8 @@ export default function TeachersPage() {
                         key={stat.label}
                         onClick={() => handleStatClick(stat.filter)}
                         className={`bg-white rounded-xl p-4 shadow-sm border transition-all cursor-pointer ${statusFilter === stat.filter
-                                ? "border-[#C4A35A] ring-1 ring-[#C4A35A] bg-[#C4A35A]/5"
-                                : "border-gray-100 hover:border-[#C4A35A]/50"
+                            ? "border-[#C4A35A] ring-1 ring-[#C4A35A] bg-[#C4A35A]/5"
+                            : "border-gray-100 hover:border-[#C4A35A]/50"
                             }`}
                     >
                         <div className="flex items-center justify-between">
@@ -171,8 +181,8 @@ export default function TeachersPage() {
                                     <td className="px-6 py-4 text-sm text-gray-600">{teacher.joinDate || "N/A"}</td>
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${teacher.status === "Active"
-                                                ? "bg-green-50 text-green-700 ring-1 ring-green-600/20"
-                                                : "bg-yellow-50 text-yellow-700 ring-1 ring-yellow-600/20"
+                                            ? "bg-green-50 text-green-700 ring-1 ring-green-600/20"
+                                            : "bg-yellow-50 text-yellow-700 ring-1 ring-yellow-600/20"
                                             }`}>
                                             <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${teacher.status === "Active" ? "bg-green-600" : "bg-yellow-600"
                                                 }`}></span>
@@ -194,7 +204,7 @@ export default function TeachersPage() {
 
             {/* Modals */}
             <TeacherDetailModal
-                teacher={selectedTeacher}
+                teacher={selectedTeacher!}
                 onClose={() => setSelectedTeacher(null)}
                 onEdit={() => alert("Edit functionality coming soon")}
             />

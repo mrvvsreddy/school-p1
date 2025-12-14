@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 
 // --- Types ---
 interface Activity {
@@ -135,7 +136,7 @@ export default function ActivitiesEditorPage() {
     };
 
     // --- Helpers ---
-    const updateActivity = (index: number, field: keyof Activity, value: any) => {
+    const updateActivity = (index: number, field: keyof Activity, value: string | string[]) => {
         const newActivities = [...data.activities];
         newActivities[index] = { ...newActivities[index], [field]: value };
         setData({ ...data, activities: newActivities });
@@ -270,7 +271,7 @@ export default function ActivitiesEditorPage() {
                                             <div className="flex items-center gap-4">
                                                 <div className="relative w-24 h-16 bg-gray-200 rounded-lg overflow-hidden shrink-0">
                                                     {activity.image ? (
-                                                        <img src={activity.image} alt="Preview" className="w-full h-full object-cover" />
+                                                        <Image src={activity.image} alt="Preview" className="w-full h-full object-cover" fill style={{ objectFit: 'cover' }} />
                                                     ) : (
                                                         <div className="flex items-center justify-center h-full text-xs text-gray-400">No Image</div>
                                                     )}

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import PhoneInput from "@/components/PhoneInput"; // Assuming we can reuse this or mock it for preview if strict
 
 // Mock simple input for preview avoiding dependencies if needed, but imported one exists
 // For preview purpose, we just need to display the Contact Info sections

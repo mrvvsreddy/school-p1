@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 // Types
 interface HeroButton { id: number; text: string; url: string; color: string; visible: boolean; }
@@ -65,31 +66,51 @@ export default function HomeEditorPage() {
     const previewUrl = "/preview/home";
     const sectionName = "Homepage";
 
-    const sendPreviewData = () => {
+    const sendPreviewData = useCallback(() => {
         const message = { type: "HOME_PREVIEW_UPDATE", data };
         iframeRef.current?.contentWindow?.postMessage(message, "*");
         fullscreenIframeRef.current?.contentWindow?.postMessage(message, "*");
-    };
+    }, [data]);
 
     useEffect(() => {
-        fetch("/api/content").then(res => res.json()).then(content => {
-            const welcome = content.welcome || {};
-            const paragraphs = welcome.paragraphs || [];
-            if (paragraphs.length === 0 && (welcome.intro1 || welcome.intro2)) {
-                if (welcome.intro1) paragraphs.push(welcome.intro1);
-                if (welcome.intro2) paragraphs.push(welcome.intro2);
+        const fetchData = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                const res = await fetch(`${apiUrl}/api/pages/home`);
+                const content = await res.json();
+
+                const welcome = content.welcome || {};
+                const paragraphs = welcome.paragraphs || [];
+                if (paragraphs.length === 0 && (welcome.intro1 || welcome.intro2)) {
+                    if (welcome.intro1) paragraphs.push(welcome.intro1);
+                    if (welcome.intro2) paragraphs.push(welcome.intro2);
+                }
+
+                setData({
+                    hero: {
+                        slides: content.hero?.slides || defaultData.hero.slides,
+                        buttons: content.hero?.buttons || defaultData.hero.buttons
+                    },
+                    welcome: {
+                        title: welcome.title || "Welcome",
+                        paragraphs: paragraphs.length > 0 ? paragraphs : [""],
+                        signatureImage: welcome.signatureImage || "",
+                        signatureText: welcome.signatureText || "School Principal",
+                        stats: welcome.stats || defaultData.welcome.stats
+                    },
+                    facilities: { list: content.facilities?.list || [] },
+                    playground: content.playground || defaultPlayground
+                });
+            } catch (error) {
+                console.error("Failed to load home data:", error);
+            } finally {
+                setLoading(false);
             }
-            setData({
-                hero: { slides: content.hero?.slides || defaultData.hero.slides, buttons: content.hero?.buttons || defaultData.hero.buttons },
-                welcome: { title: welcome.title || "Welcome", paragraphs: paragraphs.length > 0 ? paragraphs : [""], signatureImage: welcome.signatureImage || "", signatureText: welcome.signatureText || "School Principal", stats: welcome.stats || defaultData.welcome.stats },
-                facilities: { list: content.facilities?.list || [] },
-                playground: content.playground || defaultPlayground
-            });
-            setLoading(false);
-        }).catch(() => setLoading(false));
+        };
+        fetchData();
     }, []);
 
-    useEffect(() => { if (!loading) sendPreviewData(); }, [data, loading]);
+    useEffect(() => { if (!loading) sendPreviewData(); }, [data, loading, sendPreviewData]);
 
     const [previewHeight, setPreviewHeight] = useState(2000);
 
@@ -100,7 +121,7 @@ export default function HomeEditorPage() {
         };
         window.addEventListener("message", handleMessage);
         return () => window.removeEventListener("message", handleMessage);
-    }, [data]);
+    }, [sendPreviewData]);
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => { if (!isResizing || !containerRef.current) return; const rect = containerRef.current.getBoundingClientRect(); setPreviewWidth(Math.min(Math.max(((rect.right - e.clientX) / rect.width) * 100, 25), 75)); };
@@ -112,15 +133,49 @@ export default function HomeEditorPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            const saveData = {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            console.log('Saving to API:', apiUrl);
+
+            // Prepare sections for batch update
+            const sections = {
                 hero: data.hero,
-                welcome: { ...data.welcome, intro1: data.welcome.paragraphs[0] || "", intro2: data.welcome.paragraphs[1] || "" },
+                welcome: {
+                    ...data.welcome,
+                    intro1: data.welcome.paragraphs[0] || "",
+                    intro2: data.welcome.paragraphs[1] || ""
+                },
                 facilities: data.facilities,
                 playground: data.playground
             };
-            const res = await fetch("/api/content", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(saveData) });
-            if (res.ok) { alert("Published!"); setPreviewKey(k => k + 1); } else alert("Error saving");
-        } catch { alert("Error saving"); } finally { setSaving(false); }
+
+            console.log('Sections to save:', sections);
+            const url = `${apiUrl}/api/pages/home/batch`;
+            console.log('Full URL:', url);
+
+            const res = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sections })
+            });
+
+            console.log('Response status:', res.status);
+
+            if (res.ok) {
+                const result = await res.json();
+                console.log('Save successful:', result);
+                alert("Published successfully!");
+                setPreviewKey(k => k + 1);
+            } else {
+                const error = await res.json();
+                console.error('Save error:', error);
+                alert(`Error saving: ${error.detail || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error("Save error:", error);
+            alert("Error saving - check console for details");
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleImageUpload = async (section: string, index: number, file: File) => {
@@ -233,6 +288,11 @@ export default function HomeEditorPage() {
                                                     <input type="text" value={slide.title} onChange={e => updateHeroSlide(i, "title", e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="Title" />
                                                     <textarea value={slide.subtitle} onChange={e => updateHeroSlide(i, "subtitle", e.target.value)} rows={2} className="px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none" placeholder="Subtitle" />
                                                     <div className="flex gap-2"><input type="text" value={slide.image} onChange={e => updateHeroSlide(i, "image", e.target.value)} className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="Image URL" /><button onClick={() => heroFileInputs.current[i]?.click()} className="px-3 py-2 bg-[#C4A35A] text-white text-sm rounded-lg flex-shrink-0">{uploading === `hero-${i}` ? '...' : 'Upload'}</button></div>
+                                                    {slide.image && (
+                                                        <div className="mt-2 h-32 bg-gray-100 rounded-lg overflow-hidden relative border border-gray-200">
+                                                            <Image src={slide.image} alt={slide.title || `Slide ${i + 1}`} fill style={{ objectFit: 'cover' }} />
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}
@@ -297,7 +357,7 @@ export default function HomeEditorPage() {
                                         <div key={i} className="border border-gray-200 rounded-lg p-4">
                                             <input type="file" accept="image/*" ref={el => { facilityFileInputs.current[i] = el; }} onChange={e => { const file = e.target.files?.[0]; if (file) handleImageUpload("facility", i, file); }} className="hidden" />
                                             <div className="flex justify-between mb-2"><span className="text-xs text-gray-500 uppercase">Facility {i + 1}</span><button onClick={() => removeFacility(i)} className="text-red-400 hover:text-red-600"><TrashIcon /></button></div>
-                                            <div className="grid gap-2"><input type="text" value={f.title} onChange={e => updateFacility(i, "title", e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="Title" /><textarea value={f.description} onChange={e => updateFacility(i, "description", e.target.value)} rows={2} className="px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none" placeholder="Description" /><div className="flex gap-2"><input type="text" value={f.image} onChange={e => updateFacility(i, "image", e.target.value)} className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="Image URL" /><button onClick={() => facilityFileInputs.current[i]?.click()} className="px-3 py-2 bg-[#C4A35A] text-white text-sm rounded-lg">{uploading === `facility-${i}` ? '...' : 'Upload'}</button></div></div>
+                                            <div className="grid gap-2"><input type="text" value={f.title} onChange={e => updateFacility(i, "title", e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="Title" /><textarea value={f.description} onChange={e => updateFacility(i, "description", e.target.value)} rows={2} className="px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none" placeholder="Description" /><div className="flex gap-2"><input type="text" value={f.image} onChange={e => updateFacility(i, "image", e.target.value)} className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="Image URL" /><button onClick={() => facilityFileInputs.current[i]?.click()} className="px-3 py-2 bg-[#C4A35A] text-white text-sm rounded-lg">{uploading === `facility-${i}` ? '...' : 'Upload'}</button></div>{f.image && (<div className="mt-2 h-24 bg-gray-100 rounded-lg overflow-hidden relative border border-gray-200"><Image src={f.image} alt={f.title || `Facility ${i + 1}`} fill style={{ objectFit: 'cover' }} /></div>)}</div>
                                         </div>
                                     ))}
                                 </div>
@@ -331,7 +391,7 @@ export default function HomeEditorPage() {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-600 mb-2">Background Image</label>
                                     <div className="flex gap-2"><input type="text" value={data.playground.image} onChange={e => setData({ ...data, playground: { ...data.playground, image: e.target.value } })} className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="/facility-playground.jpg" /><button onClick={() => playgroundFileInput.current?.click()} className="px-4 py-2 bg-[#C4A35A] text-white text-sm rounded-lg">{uploading === 'playground-0' ? '...' : 'Upload'}</button></div>
-                                    {data.playground.image && <div className="mt-2 h-24 bg-gray-100 rounded-lg overflow-hidden relative"><img src={data.playground.image} alt="" className="w-full h-full object-cover" /><div className="absolute inset-0 bg-gradient-to-r from-[#C4A35A]/60 to-[#A38842]/60"></div></div>}
+                                    {data.playground.image && <div className="mt-2 h-24 bg-gray-100 rounded-lg overflow-hidden relative"><Image src={data.playground.image} alt="" className="w-full h-full object-cover" fill style={{ objectFit: 'cover' }} /><div className="absolute inset-0 bg-gradient-to-r from-[#C4A35A]/60 to-[#A38842]/60"></div></div>}
                                 </div>
                             </div>
                         )}

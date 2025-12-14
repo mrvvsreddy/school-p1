@@ -2,9 +2,24 @@
 
 import React, { useState } from "react";
 
+interface TeacherData {
+    name: string;
+    subject: string;
+    department: string;
+    email: string;
+    dob: string;
+    address: string;
+    contact: string;
+    joinDate: string;
+    salary: string;
+    bankAccount: string;
+    taxId: string;
+    status?: string;
+}
+
 interface AddTeacherModalProps {
     onClose: () => void;
-    onAdd: (teacher: any) => void;
+    onAdd: (teacher: TeacherData) => void;
 }
 
 export default function AddTeacherModal({ onClose, onAdd }: AddTeacherModalProps) {

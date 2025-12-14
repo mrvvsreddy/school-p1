@@ -1,70 +1,18 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 
-const activities = [
-    {
-        id: 1,
-        title: "Music & Dance",
-        description: "Classical and western music training, dance classes including Bharatanatyam, Hip-hop, and folk dances.",
-        icon: "🎵",
-        color: "#FFE4EC",
-    },
-    {
-        id: 2,
-        title: "Art & Craft",
-        description: "Painting, sketching, clay modeling, origami, and various creative craft activities.",
-        icon: "🎨",
-        color: "#E4F4FF",
-    },
-    {
-        id: 3,
-        title: "Sports & Games",
-        description: "Cricket, football, basketball, badminton, table tennis, chess, and carrom.",
-        icon: "🏆",
-        color: "#E4FFE4",
-    },
-    {
-        id: 4,
-        title: "Drama & Theatre",
-        description: "Stage performances, acting workshops, script writing, and annual plays.",
-        icon: "🎭",
-        color: "#FFF4E4",
-    },
-    {
-        id: 5,
-        title: "Debate & Public Speaking",
-        description: "Debates, elocution, Model UN, and personality development programs.",
-        icon: "🎤",
-        color: "#F4E4FF",
-    },
-    {
-        id: 6,
-        title: "Science Club",
-        description: "Science experiments, robotics, coding workshops, and science exhibitions.",
-        icon: "🔬",
-        color: "#E4FFF4",
-    },
-    {
-        id: 7,
-        title: "Yoga & Meditation",
-        description: "Daily yoga sessions, meditation practices, and wellness activities for mental health.",
-        icon: "🧘",
-        color: "#FFE4FF",
-    },
-    {
-        id: 8,
-        title: "Environmental Club",
-        description: "Tree plantation drives, recycling projects, and environmental awareness campaigns.",
-        icon: "🌱",
-        color: "#E4FFEC",
-    },
-];
+interface Activity {
+    id: number;
+    title: string;
+    description: string;
+    icon: string;
+    color: string;
+}
 
-const ActivityCard = ({ activity, index }: { activity: typeof activities[0]; index: number }) => {
+const ActivityCard = ({ activity, index }: { activity: Activity; index: number }) => {
     return (
         <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -99,8 +47,30 @@ const ActivityCard = ({ activity, index }: { activity: typeof activities[0]; ind
 };
 
 export default function Activities() {
+    const [activities, setActivities] = React.useState<Activity[]>([]);
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+    React.useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                const res = await fetch(`${apiUrl}/api/pages/activities`);
+                const json = await res.json();
+                if (json && json.list && json.list.list) {
+                    setActivities(json.list.list);
+                } else if (json && json.list) {
+                    // Check if list is the array directly or inside an object
+                    setActivities(Array.isArray(json.list) ? json.list : (json.list.list || []));
+                }
+            } catch (error) {
+                console.error("Failed to load activities:", error);
+            }
+        };
+        fetchData();
+    }, []);
+
+    if (activities.length === 0) return null;
 
     return (
         <section id="activities" className="py-24 bg-[#FAF8F5]" ref={ref}>

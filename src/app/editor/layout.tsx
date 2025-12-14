@@ -1,4 +1,5 @@
 import React from "react";
+import AuthGuard from "@/components/AuthGuard";
 
 export default function EditorLayout({
     children,
@@ -6,9 +7,11 @@ export default function EditorLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="min-h-screen bg-[#F8F9FA]">
-            {children}
-        </div>
+        <AuthGuard requiredRole="any">
+            <div className="min-h-screen bg-[#F8F9FA]">
+                {children}
+            </div>
+        </AuthGuard>
     );
 }
 

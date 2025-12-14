@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 
 // --- Types ---
 interface Grade {
@@ -148,7 +149,7 @@ export default function AcademicsEditorPage() {
 
     // --- Helpers for Arrays ---
 
-    const updateGrade = (index: number, field: keyof Grade, value: any) => {
+    const updateGrade = (index: number, field: keyof Grade, value: string | string[]) => {
         const newGrades = [...data.grades];
         newGrades[index] = { ...newGrades[index], [field]: value };
         setData({ ...data, grades: newGrades });
@@ -310,7 +311,7 @@ export default function AcademicsEditorPage() {
                                             <div className="flex items-center gap-4">
                                                 <div className="relative w-24 h-16 bg-gray-200 rounded-lg overflow-hidden shrink-0">
                                                     {grade.image ? (
-                                                        <img src={grade.image} alt="Preview" className="w-full h-full object-cover" />
+                                                        <Image src={grade.image} alt="Preview" className="w-full h-full object-cover" fill style={{ objectFit: 'cover' }} />
                                                     ) : (
                                                         <div className="flex items-center justify-center h-full text-xs text-gray-400">No Image</div>
                                                     )}

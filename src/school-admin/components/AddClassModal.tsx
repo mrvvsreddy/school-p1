@@ -2,9 +2,17 @@
 
 import React, { useState } from "react";
 
+interface ClassData {
+    name: string;
+    section: string;
+    classTeacher: string;
+    capacity: string;
+    room: string;
+}
+
 interface AddClassModalProps {
     onClose: () => void;
-    onAdd: (classData: any) => void;
+    onAdd: (classData: ClassData) => void;
 }
 
 export default function AddClassModal({ onClose, onAdd }: AddClassModalProps) {

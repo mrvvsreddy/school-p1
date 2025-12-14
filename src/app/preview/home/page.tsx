@@ -103,7 +103,7 @@ export default function HomePreviewPage() {
                         <h2 className="text-3xl font-semibold text-[#333] mb-6" style={{ fontFamily: "var(--font-playfair)" }}>{data.welcome.title || "Welcome"}</h2>
                         {data.welcome.paragraphs.map((p, i) => (<p key={i} className="text-[#666] text-base leading-relaxed mb-4">{p}</p>))}
                         <div className="flex flex-col items-center mt-6">
-                            {data.welcome.signatureImage ? (<img src={data.welcome.signatureImage} alt="Signature" className="h-12 mb-2" />) : (<svg viewBox="0 0 200 60" className="w-32 h-10 text-[#333]" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M10 40 Q20 20, 30 40 T50 40 Q60 35, 70 30 L75 30 Q85 28, 95 35 L100 35 Q110 30, 120 35 Q130 40, 140 35 L145 33 Q155 28, 165 30 L180 32" /></svg>)}
+                            {data.welcome.signatureImage ? (<Image src={data.welcome.signatureImage} alt="Signature" className="h-12 mb-2" width={128} height={48} style={{ objectFit: 'contain' }} />) : (<svg viewBox="0 0 200 60" className="w-32 h-10 text-[#333]" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M10 40 Q20 20, 30 40 T50 40 Q60 35, 70 30 L75 30 Q85 28, 95 35 L100 35 Q110 30, 120 35 Q130 40, 140 35 L145 33 Q155 28, 165 30 L180 32" /></svg>)}
                             <span className="text-sm text-[#888] italic">{data.welcome.signatureText || "Principal"}</span>
                         </div>
                     </div>

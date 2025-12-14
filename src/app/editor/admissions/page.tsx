@@ -104,7 +104,7 @@ export default function AdmissionsEditorPage() {
     };
 
     // --- Helpers ---
-    const updateProcess = (index: number, field: keyof AdmissionStep, value: any) => {
+    const updateProcess = (index: number, field: keyof AdmissionStep, value: string | number) => {
         const newProcess = [...data.process];
         newProcess[index] = { ...newProcess[index], [field]: value };
         setData({ ...data, process: newProcess });

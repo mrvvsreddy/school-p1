@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 
 // --- Types ---
 interface Facility {
@@ -133,7 +134,7 @@ export default function FacilitiesEditorPage() {
     };
 
     // --- Helpers ---
-    const updateFacility = (index: number, field: keyof Facility, value: any) => {
+    const updateFacility = (index: number, field: keyof Facility, value: string | string[]) => {
         const newFacilities = [...data.facilities];
         newFacilities[index] = { ...newFacilities[index], [field]: value };
         setData({ ...data, facilities: newFacilities });
@@ -268,7 +269,7 @@ export default function FacilitiesEditorPage() {
                                             <div className="flex items-center gap-4">
                                                 <div className="relative w-24 h-16 bg-gray-200 rounded-lg overflow-hidden shrink-0">
                                                     {facility.image ? (
-                                                        <img src={facility.image} alt="Preview" className="w-full h-full object-cover" />
+                                                        <Image src={facility.image} alt="Preview" className="w-full h-full object-cover" fill style={{ objectFit: 'cover' }} />
                                                     ) : (
                                                         <div className="flex items-center justify-center h-full text-xs text-gray-400">No Image</div>
                                                     )}

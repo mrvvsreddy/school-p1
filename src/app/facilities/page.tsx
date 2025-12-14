@@ -1,39 +1,85 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 
-const facilities = [
-    {
-        title: "Spacious Playground",
-        description: "Our 2-acre playground provides ample space for outdoor games, physical education, and recreational activities. Features include running track, basketball court, football field, and modern play equipment.",
-        image: "/facility-playground.jpg",
-        features: ["2 Acre Area", "Running Track", "Basketball Court", "Football Field", "Play Equipment", "Safety Certified"],
-    },
-    {
-        title: "Sports Complex",
-        description: "Indoor sports facilities for all-weather activities including badminton courts, table tennis, yoga room, and a fully equipped gymnasium.",
-        image: "/facility-sports.jpg",
-        features: ["Badminton Courts", "Table Tennis", "Gymnasium", "Yoga Hall", "Indoor Games", "Swimming Pool"],
-    },
-    {
-        title: "Modern Classrooms",
-        description: "Air-conditioned smart classrooms equipped with digital boards, projectors, and comfortable seating to create the optimal learning environment.",
-        image: "/facility-classroom.jpg",
-        features: ["Smart Boards", "AC Rooms", "Projectors", "Comfortable Seating", "Natural Lighting", "Spacious"],
-    },
-    {
-        title: "Computer Lab",
-        description: "State-of-the-art computer laboratory with latest systems, high-speed internet, and coding programs to prepare students for the digital age.",
-        image: "/facility-computer.jpg",
-        features: ["Latest Computers", "High-Speed Internet", "Coding Classes", "Digital Learning", "Supervised Sessions"],
-    },
-];
+
+interface Facility {
+    title: string;
+    description: string;
+    image: string;
+    features?: string[];
+}
+
+const FacilityCard = ({ facility, index }: { facility: Facility; index: number }) => (
+    <motion.div
+        key={facility.title}
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className={`grid md:grid-cols-2 gap-8 items-center ${index % 2 === 1 ? 'md:flex-row-reverse' : ''}`}
+    >
+        <div className={index % 2 === 1 ? 'md:order-2' : ''}>
+            <div className="relative h-80 rounded-2xl overflow-hidden shadow-lg">
+                <Image
+                    src={facility.image}
+                    alt={facility.title}
+                    fill
+                    className="object-cover"
+                />
+            </div>
+        </div>
+        <div className={index % 2 === 1 ? 'md:order-1' : ''}>
+            <h3 className="text-2xl md:text-3xl font-semibold text-[#333] mb-4" style={{ fontFamily: "var(--font-playfair)" }}>
+                {facility.title}
+            </h3>
+            <p className="text-[#666] mb-6">{facility.description}</p>
+            <div className="flex flex-wrap gap-2">
+                {facility.features && facility.features.map((feature: string) => (
+                    <span key={feature} className="px-4 py-2 bg-[#C4A35A]/10 text-[#C4A35A] rounded-full text-sm font-medium">
+                        {feature}
+                    </span>
+                ))}
+            </div>
+        </div>
+    </motion.div>
+);
+
+interface AdditionalFacility {
+    name: string;
+    icon: string;
+}
+
+interface FacilityResponse {
+    main_list?: { list: Facility[] };
+    additional?: { list: AdditionalFacility[] };
+}
 
 export default function FacilitiesPage() {
+    const [data, setData] = useState<FacilityResponse | null>(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                const res = await fetch(`${apiUrl}/api/pages/facilities`);
+                const json = await res.json();
+                setData(json);
+            } catch (error) {
+                console.error("Failed to load facilities data:", error);
+            }
+        };
+        fetchData();
+    }, []);
+
+    if (!data) return <div className="min-h-screen pt-32 text-center">Loading...</div>;
+
+    const facilities = data.main_list?.list || [];
+    const additionalFacilities = data.additional?.list || [];
+
     return (
         <main className="min-h-screen">
             <Header />
@@ -69,37 +115,7 @@ export default function FacilitiesPage() {
                 <div className="container mx-auto px-6">
                     <div className="space-y-16">
                         {facilities.map((facility, index) => (
-                            <motion.div
-                                key={facility.title}
-                                initial={{ opacity: 0, y: 40 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                className={`grid md:grid-cols-2 gap-8 items-center ${index % 2 === 1 ? 'md:flex-row-reverse' : ''}`}
-                            >
-                                <div className={index % 2 === 1 ? 'md:order-2' : ''}>
-                                    <div className="relative h-80 rounded-2xl overflow-hidden shadow-lg">
-                                        <Image
-                                            src={facility.image}
-                                            alt={facility.title}
-                                            fill
-                                            className="object-cover"
-                                        />
-                                    </div>
-                                </div>
-                                <div className={index % 2 === 1 ? 'md:order-1' : ''}>
-                                    <h3 className="text-2xl md:text-3xl font-semibold text-[#333] mb-4" style={{ fontFamily: "var(--font-playfair)" }}>
-                                        {facility.title}
-                                    </h3>
-                                    <p className="text-[#666] mb-6">{facility.description}</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {facility.features.map((feature) => (
-                                            <span key={feature} className="px-4 py-2 bg-[#C4A35A]/10 text-[#C4A35A] rounded-full text-sm font-medium">
-                                                {feature}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </motion.div>
+                            <FacilityCard key={facility.title} facility={facility} index={index} />
                         ))}
                     </div>
                 </div>
@@ -112,16 +128,7 @@ export default function FacilitiesPage() {
                         Additional Facilities
                     </h2>
                     <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {[
-                            { name: "Library", icon: "📚" },
-                            { name: "Science Labs", icon: "🔬" },
-                            { name: "Music Room", icon: "🎵" },
-                            { name: "Art Studio", icon: "🎨" },
-                            { name: "Auditorium", icon: "🎭" },
-                            { name: "Cafeteria", icon: "🍽️" },
-                            { name: "Medical Room", icon: "🏥" },
-                            { name: "Transport", icon: "🚌" },
-                        ].map((item) => (
+                        {additionalFacilities.map((item) => (
                             <motion.div
                                 key={item.name}
                                 initial={{ opacity: 0, scale: 0.9 }}

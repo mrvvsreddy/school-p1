@@ -1,43 +1,20 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import Image from "next/image";
 
-const courses = [
-    {
-        id: 1,
-        title: "Biochemistry",
-        description: "When an unknown printer took a galley...",
-        image: "/course-biochemistry.jpg",
-        color: "#E8D4B8",
-    },
-    {
-        id: 2,
-        title: "History",
-        description: "All the Lorem Ipsum generators on the...",
-        image: "/course-history.jpg",
-        color: "#D4C4B0",
-    },
-    {
-        id: 3,
-        title: "Human Sciences",
-        description: "When an unknown printer took a galley...",
-        image: "/course-human-sciences.jpg",
-        color: "#C4B8A8",
-    },
-    {
-        id: 4,
-        title: "Earth Sciences",
-        description: "When an unknown printer took a galley...",
-        image: "/course-earth-sciences.jpg",
-        color: "#B8ACA0",
-    },
-];
 
-const CourseCard = ({ course, index }: { course: typeof courses[0]; index: number }) => {
+interface Course {
+    id: number;
+    title: string;
+    description: string;
+    image: string;
+    color: string;
+}
+
+const CourseCard = ({ course, index }: { course: Course; index: number }) => {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: "-50px" });
 
@@ -75,13 +52,15 @@ const CourseCard = ({ course, index }: { course: typeof courses[0]; index: numbe
                     className="absolute inset-0 transition-transform duration-700 group-hover:scale-110"
                     style={{ backgroundColor: course.color }}
                 >
-                    <Image
-                        src={course.image}
-                        alt={course.title}
-                        fill
-                        className="object-cover opacity-90"
-                        unoptimized
-                    />
+                    {course.image && (
+                        <Image
+                            src={course.image}
+                            alt={course.title}
+                            fill
+                            className="object-cover opacity-90"
+                            unoptimized
+                        />
+                    )}
                 </div>
 
                 {/* Gradient Overlay */}
@@ -116,8 +95,29 @@ const CourseCard = ({ course, index }: { course: typeof courses[0]; index: numbe
 };
 
 export default function Courses() {
+    const [courses, setCourses] = React.useState<Course[]>([]);
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+    React.useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                const res = await fetch(`${apiUrl}/api/pages/academics`);
+                const json = await res.json();
+                // We seeded courses to 'academics/courses'
+                // The API returns { "courses": { "list": [...] }, ... }
+                if (json && json.courses && json.courses.list) {
+                    setCourses(json.courses.list);
+                }
+            } catch (error) {
+                console.error("Failed to load courses:", error);
+            }
+        };
+        fetchData();
+    }, []);
+
+    if (courses.length === 0) return null;
 
     return (
         <section id="academics" className="py-24 bg-[#FAF8F5]" ref={ref}>

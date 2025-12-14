@@ -6,29 +6,68 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-const admissionSteps = [
-    { step: 1, title: "Enquiry", desc: "Visit school or fill online enquiry form" },
-    { step: 2, title: "Application", desc: "Submit application with required documents" },
-    { step: 3, title: "Assessment", desc: "Student assessment and interaction" },
-    { step: 4, title: "Confirmation", desc: "Admission confirmation and fee payment" },
-];
+const AdmissionProcess = ({ steps }: { steps: AdmissionStep[] }) => (
+    <div className="grid md:grid-cols-4 gap-6">
+        {steps.map((item, index) => (
+            <motion.div
+                key={item.step}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="relative"
+            >
+                <div className="bg-[#FAF8F5] rounded-2xl p-6 text-center">
+                    <div className="w-12 h-12 bg-[#C4A35A] text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                        {item.step}
+                    </div>
+                    <h3 className="text-lg font-semibold text-[#333] mb-2">{item.title}</h3>
+                    <p className="text-[#666] text-sm">{item.desc}</p>
+                </div>
+                {index < steps.length - 1 && (
+                    <div className="hidden md:block absolute top-1/2 -right-3 transform -translate-y-1/2 text-[#C4A35A] text-2xl">→</div>
+                )}
+            </motion.div>
+        ))}
+    </div>
+);
 
-const documents = [
-    "Birth Certificate",
-    "Previous School Report Card",
-    "Transfer Certificate (if applicable)",
-    "4 Passport Size Photos",
-    "Aadhar Card (Student & Parents)",
-    "Address Proof",
-];
 
-const feeStructure = [
-    { class: "Class 1-5", admission: "₹15,000", tuition: "₹3,500/month" },
-    { class: "Class 6-8", admission: "₹18,000", tuition: "₹4,000/month" },
-    { class: "Class 9-10", admission: "₹20,000", tuition: "₹4,500/month" },
-];
+interface AdmissionStep {
+    step: number;
+    title: string;
+    desc: string;
+}
+
+interface FeeStructure {
+    class: string;
+    admission: string;
+    tuition: string;
+}
 
 export default function AdmissionsPage() {
+    const [admissionSteps, setAdmissionSteps] = React.useState<AdmissionStep[]>([]);
+    const [documents, setDocuments] = React.useState<string[]>([]);
+    const [feeStructure, setFeeStructure] = React.useState<FeeStructure[]>([]);
+
+    React.useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                const res = await fetch(`${apiUrl}/api/pages/admissions`);
+                const json = await res.json();
+                setAdmissionSteps(json.process?.steps || []);
+                setDocuments(json.requirements?.documents || []);
+                setFeeStructure(json.fees?.structure || []);
+            } catch (error) {
+                console.error("Failed to load admissions data:", error);
+            }
+        };
+        fetchData();
+    }, []);
+
+
+
     return (
         <main className="min-h-screen">
             <Header />
@@ -77,29 +116,7 @@ export default function AdmissionsPage() {
                     <h2 className="text-3xl md:text-4xl font-semibold text-[#333] text-center mb-12" style={{ fontFamily: "var(--font-playfair)" }}>
                         Admission Process
                     </h2>
-                    <div className="grid md:grid-cols-4 gap-6">
-                        {admissionSteps.map((item, index) => (
-                            <motion.div
-                                key={item.step}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: index * 0.1 }}
-                                className="relative"
-                            >
-                                <div className="bg-[#FAF8F5] rounded-2xl p-6 text-center">
-                                    <div className="w-12 h-12 bg-[#C4A35A] text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                                        {item.step}
-                                    </div>
-                                    <h3 className="text-lg font-semibold text-[#333] mb-2">{item.title}</h3>
-                                    <p className="text-[#666] text-sm">{item.desc}</p>
-                                </div>
-                                {index < admissionSteps.length - 1 && (
-                                    <div className="hidden md:block absolute top-1/2 -right-3 transform -translate-y-1/2 text-[#C4A35A] text-2xl">→</div>
-                                )}
-                            </motion.div>
-                        ))}
-                    </div>
+                    <AdmissionProcess steps={admissionSteps} />
                 </div>
             </section>
 

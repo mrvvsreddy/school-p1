@@ -11,7 +11,7 @@ interface AcademicsEditorProps {
 export default function AcademicsEditor({ content, onUpdate }: AcademicsEditorProps) {
     const academics = content.academics;
 
-    const updateAcademics = (field: string, value: any) => {
+    const updateAcademics = (field: string, value: AcademicGrade[] | Methodology[] | AcademicTerm[]) => {
         onUpdate({
             ...content,
             academics: { ...academics, [field]: value },
@@ -19,7 +19,7 @@ export default function AcademicsEditor({ content, onUpdate }: AcademicsEditorPr
     };
 
     // Grades
-    const updateGrade = (index: number, field: keyof AcademicGrade, value: any) => {
+    const updateGrade = (index: number, field: keyof AcademicGrade, value: string | string[]) => {
         const newGrades = [...academics.grades];
         newGrades[index] = { ...newGrades[index], [field]: value };
         updateAcademics("grades", newGrades);

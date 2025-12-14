@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 
 // --- Types ---
 interface GalleryImage {
@@ -204,7 +205,7 @@ export default function GalleryEditorPage() {
                                         <div className="mb-4">
                                             <div className="relative w-full aspect-video bg-gray-200 rounded-lg overflow-hidden shrink-0 mb-2">
                                                 {img.src ? (
-                                                    <img src={img.src} alt="Preview" className="w-full h-full object-cover" />
+                                                    <Image src={img.src} alt="Preview" className="w-full h-full object-cover" fill style={{ objectFit: 'cover' }} />
                                                 ) : (
                                                     <div className="flex items-center justify-center h-full text-sm text-gray-400">No Image</div>
                                                 )}

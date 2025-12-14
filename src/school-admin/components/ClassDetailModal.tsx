@@ -3,8 +3,22 @@
 import React, { useState } from "react";
 import { recentStudents } from "@/school-admin/data/mockData";
 
+interface ClassDetail {
+    name: string;
+    room: string;
+    classTeacher: string;
+    studentsCount: number;
+    capacity: number;
+    attendance: {
+        today: number;
+        history: number[];
+    };
+    subjects: { name: string; teacher: string }[];
+    schedule: { time: string; subject: string }[];
+}
+
 interface ClassDetailModalProps {
-    classData: any;
+    classData: ClassDetail;
     onClose: () => void;
 }
 
@@ -41,10 +55,10 @@ export default function ClassDetailModal({ classData, onClose }: ClassDetailModa
                         {["Overview", "Attendance", "Timetable", "Students"].map((tab) => (
                             <button
                                 key={tab}
-                                onClick={() => setActiveTab(tab as any)}
+                                onClick={() => setActiveTab(tab as "Overview" | "Attendance" | "Timetable" | "Students")}
                                 className={`py-4 text-sm font-medium border-b-2 transition-all cursor-pointer ${activeTab === tab
-                                        ? "border-[#C4A35A] text-[#C4A35A]"
-                                        : "border-transparent text-gray-500 hover:text-gray-700"
+                                    ? "border-[#C4A35A] text-[#C4A35A]"
+                                    : "border-transparent text-gray-500 hover:text-gray-700"
                                     }`}
                             >
                                 {tab}
@@ -87,7 +101,7 @@ export default function ClassDetailModal({ classData, onClose }: ClassDetailModa
                                     <h3 className="font-semibold text-gray-900">Subjects & Teachers</h3>
                                 </div>
                                 <div className="divide-y divide-gray-100">
-                                    {classData.subjects.map((subj: any, idx: number) => (
+                                    {classData.subjects.map((subj, idx) => (
                                         <div key={idx} className="px-6 py-3 flex justify-between items-center hover:bg-gray-50">
                                             <span className="text-sm font-medium text-gray-800">{subj.name}</span>
                                             <span className="text-sm text-gray-500">{subj.teacher}</span>
@@ -143,7 +157,7 @@ export default function ClassDetailModal({ classData, onClose }: ClassDetailModa
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {classData.schedule.map((slot: any, idx: number) => (
+                                    {classData.schedule.map((slot, idx) => (
                                         <tr key={idx} className="hover:bg-gray-50">
                                             <td className="px-6 py-4 text-sm font-medium text-gray-900 w-1/3">
                                                 {slot.time}
@@ -190,8 +204,8 @@ export default function ClassDetailModal({ classData, onClose }: ClassDetailModa
                                                 <td className="px-6 py-4 text-sm text-gray-600">#{student.rollNo}</td>
                                                 <td className="px-6 py-4">
                                                     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${student.status === "Present" ? "bg-green-100 text-green-700"
-                                                            : student.status === "Absent" ? "bg-red-100 text-red-700"
-                                                                : "bg-yellow-100 text-yellow-700"
+                                                        : student.status === "Absent" ? "bg-red-100 text-red-700"
+                                                            : "bg-yellow-100 text-yellow-700"
                                                         }`}>
                                                         {student.status}
                                                     </span>

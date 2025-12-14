@@ -2,10 +2,33 @@
 
 import React, { useState } from "react";
 
+interface Student {
+    id: string | number;
+    name: string;
+    class: string;
+    rollNo: string;
+    status: string;
+    dob: string;
+    address: string;
+    contact: string;
+    parents: {
+        father: string;
+        mother: string;
+        phone: string;
+    };
+}
+
+interface ExamResult {
+    subject: string;
+    marks: number;
+    total: number;
+    grade: string;
+}
+
 interface StudentDetailModalProps {
-    student: any;
+    student: Student;
     onClose: () => void;
-    onEdit: (updatedStudent: any) => void;
+    onEdit: (updatedStudent: Student) => void;
 }
 
 export default function StudentDetailModal({ student, onClose, onEdit }: StudentDetailModalProps) {
@@ -13,7 +36,7 @@ export default function StudentDetailModal({ student, onClose, onEdit }: Student
     const [isEditing, setIsEditing] = useState(false);
 
     // Edit State
-    const [editForm, setEditForm] = useState(student ? { ...student } : {});
+    const [editForm, setEditForm] = useState<Student>(student ? { ...student } : {} as Student);
 
     // Exam Filters
     const [examYear, setExamYear] = useState("2023");
@@ -31,7 +54,7 @@ export default function StudentDetailModal({ student, onClose, onEdit }: Student
     };
 
     // Mock Exam Data Structure
-    const allExamResults: any = {
+    const allExamResults: Record<string, Record<string, ExamResult[]>> = {
         "2023": {
             "Mid-term": [
                 { subject: "Mathematics", marks: 78, total: 100, grade: "B+" },
@@ -66,12 +89,12 @@ export default function StudentDetailModal({ student, onClose, onEdit }: Student
         const { name, value } = e.target;
         if (name.startsWith("parents.")) {
             const field = name.split(".")[1];
-            setEditForm((prev: any) => ({
+            setEditForm((prev) => ({
                 ...prev,
                 parents: { ...prev.parents, [field]: value }
             }));
         } else {
-            setEditForm((prev: any) => ({ ...prev, [name]: value }));
+            setEditForm((prev) => ({ ...prev, [name]: value }));
         }
     };
 
@@ -112,7 +135,7 @@ export default function StudentDetailModal({ student, onClose, onEdit }: Student
                         {["Profile", "Attendance", "Exams"].map((tab) => (
                             <button
                                 key={tab}
-                                onClick={() => setActiveTab(tab as any)}
+                                onClick={() => setActiveTab(tab as "Profile" | "Attendance" | "Exams")}
                                 className={`py-3 text-sm font-medium border-b-2 transition-all cursor-pointer ${activeTab === tab ? "border-[#C4A35A] text-[#C4A35A]" : "border-transparent text-gray-500 hover:text-gray-700"
                                     }`}
                             >
@@ -256,7 +279,7 @@ export default function StudentDetailModal({ student, onClose, onEdit }: Student
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
                                         {currentExamResults.length > 0 ? (
-                                            currentExamResults.map((exam: any, idx: number) => (
+                                            currentExamResults.map((exam, idx) => (
                                                 <tr key={idx} className="hover:bg-gray-50/50">
                                                     <td className="px-5 py-3 text-xs font-medium text-gray-900">{exam.subject}</td>
                                                     <td className="px-5 py-3 text-xs text-gray-600">
@@ -328,7 +351,7 @@ function DetailRow({ label, value }: { label: string, value: string }) {
     );
 }
 
-function EditInput({ label, value, onChange, name }: any) {
+function EditInput({ label, value, onChange, name }: { label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; name: string }) {
     return (
         <div>
             <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">{label}</label>

@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: school-backend
+    env: python
+    region: oregon
+    buildCommand: "cd server && chmod +x build.sh && ./build.sh"
+    startCommand: "cd server && chmod +x start.sh && ./start.sh"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+    healthCheckPath: /health
