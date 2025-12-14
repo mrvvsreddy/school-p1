@@ -33,8 +33,8 @@ export default function ClassesPage() {
         cls.classTeacher.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const handleAddClass = (newClass: ClassData) => {
-        const classWithMockData = {
+    const handleAddClass = (newClass: { name: string; grade: string; section: string; classTeacher: string; capacity: number; room: string }) => {
+        const classWithMockData: ClassData = {
             ...newClass,
             id: classList.length + 1,
             studentsCount: 0,

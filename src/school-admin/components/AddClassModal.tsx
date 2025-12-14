@@ -2,31 +2,36 @@
 
 import React, { useState } from "react";
 
-interface ClassData {
+interface AddClassFormData {
     name: string;
+    grade: string;
     section: string;
     classTeacher: string;
-    capacity: string;
+    capacity: number;
     room: string;
 }
 
 interface AddClassModalProps {
     onClose: () => void;
-    onAdd: (classData: ClassData) => void;
+    onAdd: (classData: AddClassFormData) => void;
 }
 
 export default function AddClassModal({ onClose, onAdd }: AddClassModalProps) {
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<AddClassFormData>({
         name: "",
+        grade: "",
         section: "",
         classTeacher: "",
-        capacity: "",
+        capacity: 0,
         room: ""
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setFormData(prev => ({
+            ...prev,
+            [name]: name === 'capacity' ? parseInt(value) || 0 : value
+        }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -48,26 +53,30 @@ export default function AddClassModal({ onClose, onAdd }: AddClassModalProps) {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-[11px] font-semibold text-gray-600 mb-1">CLASS NAME</label>
-                            <input required name="name" onChange={handleChange} className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#C4A35A]" placeholder="e.g. 10-A" />
+                            <input required name="name" value={formData.name} onChange={handleChange} className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#C4A35A]" placeholder="e.g. 10-A" />
                         </div>
                         <div>
+                            <label className="block text-[11px] font-semibold text-gray-600 mb-1">GRADE</label>
+                            <input required name="grade" value={formData.grade} onChange={handleChange} className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#C4A35A]" placeholder="e.g. Grade 10" />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
                             <label className="block text-[11px] font-semibold text-gray-600 mb-1">SECTION</label>
-                            <input required name="section" onChange={handleChange} className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#C4A35A]" placeholder="e.g. A" />
+                            <input required name="section" value={formData.section} onChange={handleChange} className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#C4A35A]" placeholder="e.g. A" />
+                        </div>
+                        <div>
+                            <label className="block text-[11px] font-semibold text-gray-600 mb-1">ROOM NO</label>
+                            <input required name="room" value={formData.room} onChange={handleChange} className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#C4A35A]" placeholder="101" />
                         </div>
                     </div>
                     <div>
                         <label className="block text-[11px] font-semibold text-gray-600 mb-1">CLASS TEACHER</label>
-                        <input required name="classTeacher" onChange={handleChange} className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#C4A35A]" placeholder="Teacher Name" />
+                        <input required name="classTeacher" value={formData.classTeacher} onChange={handleChange} className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#C4A35A]" placeholder="Teacher Name" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-[11px] font-semibold text-gray-600 mb-1">CAPACITY</label>
-                            <input required type="number" name="capacity" onChange={handleChange} className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#C4A35A]" placeholder="40" />
-                        </div>
-                        <div>
-                            <label className="block text-[11px] font-semibold text-gray-600 mb-1">ROOM NO</label>
-                            <input required name="room" onChange={handleChange} className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#C4A35A]" placeholder="101" />
-                        </div>
+                    <div>
+                        <label className="block text-[11px] font-semibold text-gray-600 mb-1">CAPACITY</label>
+                        <input required type="number" name="capacity" value={formData.capacity} onChange={handleChange} className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-[#C4A35A]" placeholder="40" />
                     </div>
                     <div className="pt-4 flex justify-end gap-3">
                         <button type="button" onClick={onClose} className="px-5 py-2 text-gray-600 text-sm font-medium hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">Cancel</button>

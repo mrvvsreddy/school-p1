@@ -1,6 +1,6 @@
 import os
 import json
-from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi import FastAPI, HTTPException, Request, Depends, Response
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from supabase import create_client, Client
@@ -177,17 +177,22 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"detail": "Internal server error"}
     )
 
+# Root endpoint
+@app.get("/")
+def root():
+    """Root endpoint"""
+    return {"status": "ok"}
+
+@app.head("/")
+def head_root():
+    """Root HEAD endpoint"""
+    return Response(status_code=200)
+
 # Health check endpoint
 @app.get("/health")
-async def health_check():
-    """Health check endpoint for monitoring"""
-    from datetime import datetime
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "database": "connected" if supabase else "disconnected",
-        "environment": os.getenv("ENVIRONMENT", "development")
-    }
+def health():
+    """Health check endpoint"""
+    return "ok"
 
 # --- NEW ENDPOINTS ---
 
@@ -296,12 +301,8 @@ async def batch_update_sections(page_slug: str, request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# Health check
-@app.get("/health")
-def health_check():
-    return {"status": "ok", "supabase_connected": bool(supabase)}
-
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
 
