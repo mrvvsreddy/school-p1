@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import sys
 import time
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request, Depends, Response
@@ -11,13 +12,23 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 from typing import Dict, Any, List
 
-# Configure logging
+# Configure logging - ensure output is flushed immediately
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
 )
+# Force stdout to be unbuffered
+sys.stdout.reconfigure(line_buffering=True) if hasattr(sys.stdout, 'reconfigure') else None
+
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Also configure uvicorn access log
+logging.getLogger("uvicorn.access").setLevel(logging.INFO)
 
 # Load environment variables
 load_dotenv()
