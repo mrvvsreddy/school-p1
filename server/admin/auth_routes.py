@@ -71,16 +71,21 @@ async def login(request: LoginRequest, response: Response):
         }
         access_token = create_access_token(token_data)
         
-        # Determine environment
+        # Determine environment - check multiple indicators
         import os
-        is_production = os.getenv("ENVIRONMENT", "development") == "production"
+        is_production = os.getenv("ENVIRONMENT", "").lower() == "production"
+        is_render = os.getenv("RENDER", "") == "true"
         
-        # For cross-origin requests (Next.js on localhost:3000 to FastAPI on localhost:8000),
-        # SameSite='none' is required, but that also requires Secure=True.
-        # For localhost development, we use SameSite='none' with Secure=False (Chrome allows this for localhost)
-        # In production, use SameSite='none' with Secure=True for cross-origin cookie support
+        # For cross-origin requests, SameSite='none' is required.
+        # SameSite='none' REQUIRES Secure=True in all modern browsers.
+        # Even localhost development now requires Secure=True for cross-origin.
         samesite_value = "none"  # Required for cross-origin cookie setting
-        secure_value = is_production  # HTTPS only in production, Chrome allows localhost without HTTPS
+        
+        # Always use Secure=True for SameSite=None (required by browsers)
+        # This works because Render/Vercel use HTTPS
+        secure_value = True
+        
+        logger.info(f"Setting cookie: samesite={samesite_value}, secure={secure_value}, env=production:{is_production}, render:{is_render}")
         
         # Set secure HTTP-only cookie
         response.set_cookie(
