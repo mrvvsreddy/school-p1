@@ -22,7 +22,7 @@ STORAGE_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "site-images")
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"}
 ALLOWED_VIDEO_TYPES = {"video/mp4", "video/webm", "video/ogg", "video/quicktime"}
 ALLOWED_TYPES = ALLOWED_IMAGE_TYPES | ALLOWED_VIDEO_TYPES
-MAX_IMAGE_SIZE = 5 * 1024 * 1024   # 5MB for images
+MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB for images
 MAX_VIDEO_SIZE = 50 * 1024 * 1024  # 50MB for videos
 
 
