@@ -4,12 +4,16 @@ Handles token creation, verification, and user authentication
 """
 
 import os
+import logging
 from datetime import datetime, timedelta
 from typing import Optional
-from jose import JWTError, jwt
+from jose import JWTError, jwt, ExpiredSignatureError
 from fastapi import HTTPException, Security, Depends, Cookie
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 # JWT Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-this-in-production")
@@ -80,7 +84,15 @@ def verify_token(token: str) -> TokenData:
             exp=datetime.fromtimestamp(payload.get("exp"))
         )
     
-    except JWTError:
+    except ExpiredSignatureError:
+        logger.warning(f"JWT token expired for user")
+        raise HTTPException(
+            status_code=401,
+            detail="Token has expired. Please login again.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except JWTError as e:
+        logger.error(f"JWT verification failed: {type(e).__name__}: {str(e)}")
         raise HTTPException(
             status_code=401,
             detail="Could not validate credentials",
@@ -108,12 +120,14 @@ async def get_current_user(
         token = credentials.credentials
     
     if not token:
+        logger.warning(f"Authentication attempt without token")
         raise HTTPException(
             status_code=401,
-            detail="Not authenticated",
+            detail="Not authenticated - no token provided",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
+    logger.debug(f"Verifying token from {'cookie' if auth_token else 'header'}")
     return verify_token(token)
 
 async def require_admin(current_user: TokenData = Depends(get_current_user)) -> TokenData:

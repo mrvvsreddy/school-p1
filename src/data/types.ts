@@ -3,6 +3,7 @@ export interface HeroSlide {
     title: string;
     subtitle: string;
     image: string;
+    mediaType?: 'image' | 'video';
 }
 
 export interface HeroData {

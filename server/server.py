@@ -1,11 +1,23 @@
 import os
 import json
+import logging
+import time
+from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request, Depends, Response
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from typing import Dict, Any, List
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -147,13 +159,64 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Request logging middleware
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.time()
+        
+        # Get request details
+        method = request.method
+        path = request.url.path
+        query = str(request.query_params) if request.query_params else ""
+        client_ip = request.client.host if request.client else "unknown"
+        
+        # Check for auth token (redacted for security)
+        has_auth_cookie = "auth_token" in request.cookies
+        auth_header = request.headers.get("authorization", "")
+        has_auth_header = bool(auth_header)
+        
+        # Log incoming request
+        auth_info = []
+        if has_auth_cookie:
+            auth_info.append("cookie")
+        if has_auth_header:
+            auth_info.append("header")
+        auth_str = f" [Auth: {', '.join(auth_info)}]" if auth_info else " [No Auth]"
+        
+        logger.info(f"→ {method} {path}{' ?' + query if query else ''} from {client_ip}{auth_str}")
+        
+        try:
+            response = await call_next(request)
+            
+            # Calculate duration
+            duration = time.time() - start_time
+            duration_ms = round(duration * 1000, 2)
+            
+            # Color-code status
+            status = response.status_code
+            status_str = f"{status}"
+            if status >= 400:
+                logger.warning(f"← {method} {path} → {status_str} ({duration_ms}ms)")
+            else:
+                logger.info(f"← {method} {path} → {status_str} ({duration_ms}ms)")
+            
+            return response
+            
+        except Exception as e:
+            duration = time.time() - start_time
+            duration_ms = round(duration * 1000, 2)
+            logger.error(f"✗ {method} {path} → ERROR: {str(e)} ({duration_ms}ms)")
+            raise
+
+app.add_middleware(RequestLoggingMiddleware)
+
 # Global exception handler
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Handle all unhandled exceptions"""
     import traceback
-    print(f"ERROR: Unhandled exception: {exc}")
-    print(traceback.format_exc())
+    logger.error(f"Unhandled exception on {request.method} {request.url.path}: {exc}")
+    logger.error(traceback.format_exc())
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error"}

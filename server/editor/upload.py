@@ -19,8 +19,11 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 STORAGE_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "site-images")
 
 # Allowed file types and max size
-ALLOWED_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"}
-MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"}
+ALLOWED_VIDEO_TYPES = {"video/mp4", "video/webm", "video/ogg", "video/quicktime"}
+ALLOWED_TYPES = ALLOWED_IMAGE_TYPES | ALLOWED_VIDEO_TYPES
+MAX_IMAGE_SIZE = 5 * 1024 * 1024   # 5MB for images
+MAX_VIDEO_SIZE = 50 * 1024 * 1024  # 50MB for videos
 
 
 def get_supabase_client() -> Client:
@@ -54,11 +57,14 @@ async def upload_image(file: UploadFile = File(...)):
     # Read file content
     content = await file.read()
     
-    # Validate file size
-    if len(content) > MAX_FILE_SIZE:
+    # Validate file size based on type
+    is_video = file.content_type in ALLOWED_VIDEO_TYPES
+    max_size = MAX_VIDEO_SIZE if is_video else MAX_IMAGE_SIZE
+    
+    if len(content) > max_size:
         raise HTTPException(
             status_code=400,
-            detail=f"File too large. Maximum size is {MAX_FILE_SIZE // (1024 * 1024)}MB"
+            detail=f"File too large. Maximum size is {max_size // (1024 * 1024)}MB"
         )
     
     # Generate unique filename
@@ -70,7 +76,11 @@ async def upload_image(file: UploadFile = File(...)):
             "image/png": ".png",
             "image/gif": ".gif",
             "image/webp": ".webp",
-            "image/svg+xml": ".svg"
+            "image/svg+xml": ".svg",
+            "video/mp4": ".mp4",
+            "video/webm": ".webm",
+            "video/ogg": ".ogg",
+            "video/quicktime": ".mov"
         }
         ext = ext_map.get(file.content_type, ".jpg")
     
@@ -95,7 +105,8 @@ async def upload_image(file: UploadFile = File(...)):
         return {
             "url": public_url,
             "success": True,
-            "filename": filename
+            "filename": filename,
+            "mediaType": "video" if is_video else "image"
         }
         
     except Exception as e:

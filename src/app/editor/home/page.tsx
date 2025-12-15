@@ -6,7 +6,7 @@ import Image from "next/image";
 
 // Types
 interface HeroButton { id: number; text: string; url: string; color: string; visible: boolean; }
-interface HeroSlide { id: number; title: string; subtitle: string; image: string; }
+interface HeroSlide { id: number; title: string; subtitle: string; image: string; mediaType?: 'image' | 'video'; }
 interface Stat { number: string; label: string; }
 interface Facility { title: string; description: string; image: string; }
 interface PlaygroundFeature { icon: string; text: string; }
@@ -29,7 +29,7 @@ const defaultPlayground: PlaygroundData = {
 };
 
 const defaultData: HomeData = {
-    hero: { slides: [{ id: 1, title: "Welcome", subtitle: "Description", image: "" }], buttons: [{ id: 1, text: "Admissions Open", url: "/admissions", color: "#C4A35A", visible: true }] },
+    hero: { slides: [{ id: 1, title: "Welcome", subtitle: "Description", image: "", mediaType: 'image' }], buttons: [{ id: 1, text: "Admissions Open", url: "/admissions", color: "#C4A35A", visible: true }] },
     welcome: { title: "Welcome", paragraphs: [""], signatureImage: "", signatureText: "School Principal", stats: [{ number: "25+", label: "Years" }] },
     facilities: { list: [] },
     playground: defaultPlayground
@@ -178,7 +178,7 @@ export default function HomeEditorPage() {
         }
     };
 
-    const handleImageUpload = async (section: string, index: number, file: File) => {
+    const handleMediaUpload = async (section: string, index: number, file: File) => {
         setUploading(`${section}-${index}`);
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -186,7 +186,11 @@ export default function HomeEditorPage() {
             const res = await fetch(`${apiUrl}/api/editor/upload`, { method: "POST", body: formData });
             if (res.ok) {
                 const result = await res.json();
-                if (section === "hero") updateHeroSlide(index, "image", result.url);
+                if (section === "hero") {
+                    const s = [...data.hero.slides];
+                    s[index] = { ...s[index], image: result.url, mediaType: result.mediaType || 'image' };
+                    setData({ ...data, hero: { ...data.hero, slides: s } });
+                }
                 else if (section === "facility") updateFacility(index, "image", result.url);
                 else if (section === "signature") setData({ ...data, welcome: { ...data.welcome, signatureImage: result.url } });
                 else if (section === "playground") setData({ ...data, playground: { ...data.playground, image: result.url } });
@@ -235,8 +239,8 @@ export default function HomeEditorPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <input type="file" accept="image/*" ref={signatureFileInput} onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload("signature", 0, f); }} className="hidden" />
-            <input type="file" accept="image/*" ref={playgroundFileInput} onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload("playground", 0, f); }} className="hidden" />
+            <input type="file" accept="image/*" ref={signatureFileInput} onChange={e => { const f = e.target.files?.[0]; if (f) handleMediaUpload("signature", 0, f); }} className="hidden" />
+            <input type="file" accept="image/*" ref={playgroundFileInput} onChange={e => { const f = e.target.files?.[0]; if (f) handleMediaUpload("playground", 0, f); }} className="hidden" />
 
             {fullscreenPreview && (
                 <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4">
@@ -283,17 +287,23 @@ export default function HomeEditorPage() {
                                     <div className="space-y-3">
                                         {data.hero.slides.map((slide, i) => (
                                             <div key={slide.id || i} draggable onDragStart={() => handleSlideDragStart(i)} onDragOver={e => handleSlideDragOver(e, i)} onDragEnd={handleSlideDragEnd} className={`border border-gray-200 rounded-lg p-4 cursor-move ${draggedSlideIndex === i ? 'opacity-50 border-[#C4A35A]' : ''}`}>
-                                                <input type="file" accept="image/*" ref={el => { heroFileInputs.current[i] = el; }} onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload("hero", i, f); }} className="hidden" />
+                                                <input type="file" accept="image/*,video/mp4,video/webm,video/ogg" ref={el => { heroFileInputs.current[i] = el; }} onChange={e => { const f = e.target.files?.[0]; if (f) handleMediaUpload("hero", i, f); }} className="hidden" />
                                                 <div className="flex items-center justify-between mb-3"><div className="flex items-center gap-2"><DragIcon /><span className="text-xs text-gray-500 uppercase">Slide {i + 1}</span></div><button onClick={() => removeHeroSlide(i)} className="text-red-400 hover:text-red-600 p-1"><TrashIcon /></button></div>
                                                 <div className="grid grid-cols-1 gap-2">
                                                     <input type="text" value={slide.title} onChange={e => updateHeroSlide(i, "title", e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="Title" />
                                                     <textarea value={slide.subtitle} onChange={e => updateHeroSlide(i, "subtitle", e.target.value)} rows={2} className="px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none" placeholder="Subtitle" />
-                                                    <div className="flex gap-2"><input type="text" value={slide.image} onChange={e => updateHeroSlide(i, "image", e.target.value)} className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="Image URL" /><button onClick={() => heroFileInputs.current[i]?.click()} className="px-3 py-2 bg-[#C4A35A] text-white text-sm rounded-lg flex-shrink-0">{uploading === `hero-${i}` ? '...' : 'Upload'}</button></div>
-                                                    {slide.image && (
+                                                    <div className="flex gap-2"><input type="text" value={slide.image} onChange={e => updateHeroSlide(i, "image", e.target.value)} className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="Media URL (Image or Video)" /><button onClick={() => heroFileInputs.current[i]?.click()} className="px-3 py-2 bg-[#C4A35A] text-white text-sm rounded-lg flex-shrink-0">{uploading === `hero-${i}` ? '...' : 'Upload'}</button></div>
+                                                    {slide.image && slide.mediaType === 'video' ? (
+                                                        <div className="mt-2 h-32 bg-gray-900 rounded-lg overflow-hidden relative border border-gray-200">
+                                                            <video src={slide.image} className="w-full h-full object-cover" controls muted />
+                                                            <span className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">Video</span>
+                                                        </div>
+                                                    ) : slide.image ? (
                                                         <div className="mt-2 h-32 bg-gray-100 rounded-lg overflow-hidden relative border border-gray-200">
                                                             <Image src={slide.image} alt={slide.title || `Slide ${i + 1}`} fill style={{ objectFit: 'cover' }} />
+                                                            <span className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">Image</span>
                                                         </div>
-                                                    )}
+                                                    ) : null}
                                                 </div>
                                             </div>
                                         ))}
@@ -356,7 +366,7 @@ export default function HomeEditorPage() {
                                 <div className="space-y-3">
                                     {data.facilities.list.map((f, i) => (
                                         <div key={i} className="border border-gray-200 rounded-lg p-4">
-                                            <input type="file" accept="image/*" ref={el => { facilityFileInputs.current[i] = el; }} onChange={e => { const file = e.target.files?.[0]; if (file) handleImageUpload("facility", i, file); }} className="hidden" />
+                                            <input type="file" accept="image/*" ref={el => { facilityFileInputs.current[i] = el; }} onChange={e => { const file = e.target.files?.[0]; if (file) handleMediaUpload("facility", i, file); }} className="hidden" />
                                             <div className="flex justify-between mb-2"><span className="text-xs text-gray-500 uppercase">Facility {i + 1}</span><button onClick={() => removeFacility(i)} className="text-red-400 hover:text-red-600"><TrashIcon /></button></div>
                                             <div className="grid gap-2"><input type="text" value={f.title} onChange={e => updateFacility(i, "title", e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="Title" /><textarea value={f.description} onChange={e => updateFacility(i, "description", e.target.value)} rows={2} className="px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none" placeholder="Description" /><div className="flex gap-2"><input type="text" value={f.image} onChange={e => updateFacility(i, "image", e.target.value)} className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="Image URL" /><button onClick={() => facilityFileInputs.current[i]?.click()} className="px-3 py-2 bg-[#C4A35A] text-white text-sm rounded-lg">{uploading === `facility-${i}` ? '...' : 'Upload'}</button></div>{f.image && (<div className="mt-2 h-24 bg-gray-100 rounded-lg overflow-hidden relative border border-gray-200"><Image src={f.image} alt={f.title || `Facility ${i + 1}`} fill style={{ objectFit: 'cover' }} /></div>)}</div>
                                         </div>

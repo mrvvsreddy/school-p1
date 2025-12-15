@@ -47,7 +47,7 @@ export default function Hero({ slides }: HeroProps) {
 
     return (
         <section id="home" className="relative h-screen min-h-[700px] overflow-hidden bg-[#1a1a1a]">
-            {/* All Background Images - Stacked with opacity transitions */}
+            {/* All Background Media - Stacked with opacity transitions */}
             {slides.map((slide, index) => (
                 <motion.div
                     key={slide.id}
@@ -60,14 +60,25 @@ export default function Hero({ slides }: HeroProps) {
                     transition={{ duration: 1, ease: "easeInOut" }}
                     style={{ zIndex: index === currentSlide ? 1 : 0 }}
                 >
-                    <Image
-                        src={slide.image}
-                        alt={slide.title}
-                        fill
-                        className="object-cover"
-                        priority={index === 0}
-                        sizes="100vw"
-                    />
+                    {slide.mediaType === 'video' ? (
+                        <video
+                            src={slide.image}
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="absolute inset-0 w-full h-full object-cover"
+                        />
+                    ) : (
+                        <Image
+                            src={slide.image}
+                            alt={slide.title}
+                            fill
+                            className="object-cover"
+                            priority={index === 0}
+                            sizes="100vw"
+                        />
+                    )}
 
                     {/* Gradient Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/60" />

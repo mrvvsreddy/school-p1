@@ -3,6 +3,7 @@ Authentication API Routes
 Handles admin login with JWT token generation
 """
 
+import logging
 from fastapi import APIRouter, HTTPException, Depends, Response
 from pydantic import BaseModel, EmailStr
 from typing import Optional
@@ -10,6 +11,9 @@ from datetime import datetime, timedelta
 
 # Import JWT utilities
 from .auth_utils import create_access_token, get_current_user, TokenData, require_admin
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -107,12 +111,13 @@ async def login(request: LoginRequest, response: Response):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Login error: {e}")
+        logger.error(f"Login error for {request.email}: {type(e).__name__}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/logout")
 async def logout(response: Response):
     """Logout - clears secure HTTP-only cookie"""
+    logger.info("User logout requested")
     response.delete_cookie(key="auth_token", path="/")
     return {"success": True, "message": "Logged out successfully"}
 
