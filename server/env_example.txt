@@ -3,7 +3,13 @@ SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
 DATABASE_URL=postgresql://postgres.vxlouapxryjosqizskxq:@Reddy14321@aws-1-ap-south-1.pooler.supabase.com:6543/postgres
 
 # CORS Configuration - Comma-separated list of allowed origins
-ALLOWED_ORIGINS=http://localhost:3000,https://your-production-domain.com
+# You can specify domains with or without http/https protocol
+# If no protocol is specified, both http:// and https:// will be added automatically
+# Examples:
+#   - localhost:3000 (will allow both http://localhost:3000 and https://localhost:3000)
+#   - your-domain.com,another-domain.com (will allow both http and https for each)
+#   - http://specific-http-only.com (will only allow http)
+ALLOWED_ORIGINS=localhost:3000,your-production-domain.com
 
 # JWT Secret Key - Change this to a secure random string in production
 JWT_SECRET_KEY=your-super-secret-jwt-key-change-this-in-production
