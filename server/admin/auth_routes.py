@@ -67,17 +67,24 @@ async def login(request: LoginRequest, response: Response):
         }
         access_token = create_access_token(token_data)
         
-        # Determine if production environment
+        # Determine environment
         import os
         is_production = os.getenv("ENVIRONMENT", "development") == "production"
+        
+        # For cross-origin requests (Next.js on localhost:3000 to FastAPI on localhost:8000),
+        # SameSite='none' is required, but that also requires Secure=True.
+        # For localhost development, we use SameSite='none' with Secure=False (Chrome allows this for localhost)
+        # In production, use SameSite='none' with Secure=True for cross-origin cookie support
+        samesite_value = "none"  # Required for cross-origin cookie setting
+        secure_value = is_production  # HTTPS only in production, Chrome allows localhost without HTTPS
         
         # Set secure HTTP-only cookie
         response.set_cookie(
             key="auth_token",
             value=access_token,
             httponly=True,  # Prevents JavaScript access
-            secure=is_production,  # ✅ HTTPS only in production
-            samesite="lax",  # CSRF protection
+            secure=secure_value,
+            samesite=samesite_value,
             max_age=25200,  # 7 hours in seconds (7 * 60 * 60)
             path="/"
         )

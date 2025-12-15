@@ -101,8 +101,7 @@ export default function AdminLoginPage() {
                         </button>
 
                         <p className="text-xs text-gray-500 text-center">
-                            Secure authentication<br />
-                            <span className="text-[#C4A35A]">Session expires in 7 hours</span>
+                            Secure authentication
                         </p>
                     </form>
                 </div>
