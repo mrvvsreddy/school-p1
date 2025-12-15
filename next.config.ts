@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    // Skip Next.js image optimization to avoid IPv6/private IP restrictions
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;
