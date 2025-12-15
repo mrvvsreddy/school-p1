@@ -67,7 +67,8 @@ export default function AcademicsEditorPage() {
 
     // Initial load
     useEffect(() => {
-        fetch("/api/content")
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        fetch(`${apiUrl}/api/pages/academics`)
             .then((res) => res.json())
             .then((content) => {
                 if (content.academics) {
@@ -107,10 +108,11 @@ export default function AcademicsEditorPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            const res = await fetch("/api/content", {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const res = await fetch(`${apiUrl}/api/pages/academics/batch`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ academics: data }),
+                body: JSON.stringify({ sections: { academics: data } }),
             });
             if (!res.ok) throw new Error("Failed to save");
             alert("Changes published successfully!");
@@ -129,7 +131,8 @@ export default function AcademicsEditorPage() {
         setUploading(prev => ({ ...prev, [key]: true }));
 
         try {
-            const res = await fetch('/api/upload', {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const res = await fetch(`${apiUrl}/api/editor/upload`, {
                 method: 'POST',
                 body: formData
             });

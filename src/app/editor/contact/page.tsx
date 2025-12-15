@@ -45,7 +45,8 @@ export default function ContactEditorPage() {
 
     // Initial load
     useEffect(() => {
-        fetch("/api/content")
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        fetch(`${apiUrl}/api/pages/contact`)
             .then((res) => res.json())
             .then((content) => {
                 if (content.contact) {
@@ -85,10 +86,11 @@ export default function ContactEditorPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            const res = await fetch("/api/content", {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const res = await fetch(`${apiUrl}/api/pages/contact/batch`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contact: data }),
+                body: JSON.stringify({ sections: { contact: data } }),
             });
             if (!res.ok) throw new Error("Failed to save");
             alert("Changes published successfully!");

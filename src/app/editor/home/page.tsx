@@ -181,8 +181,9 @@ export default function HomeEditorPage() {
     const handleImageUpload = async (section: string, index: number, file: File) => {
         setUploading(`${section}-${index}`);
         try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
             const formData = new FormData(); formData.append("file", file);
-            const res = await fetch("/api/upload", { method: "POST", body: formData });
+            const res = await fetch(`${apiUrl}/api/editor/upload`, { method: "POST", body: formData });
             if (res.ok) {
                 const result = await res.json();
                 if (section === "hero") updateHeroSlide(index, "image", result.url);

@@ -47,7 +47,8 @@ export default function AdmissionsEditorPage() {
 
     // Initial load
     useEffect(() => {
-        fetch("/api/content")
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        fetch(`${apiUrl}/api/pages/admissions`)
             .then((res) => res.json())
             .then((content) => {
                 if (content.admissions) {
@@ -88,10 +89,11 @@ export default function AdmissionsEditorPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            const res = await fetch("/api/content", {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const res = await fetch(`${apiUrl}/api/pages/admissions/batch`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ admissions: data }),
+                body: JSON.stringify({ sections: { admissions: data } }),
             });
             if (!res.ok) throw new Error("Failed to save");
             alert("Changes published successfully!");

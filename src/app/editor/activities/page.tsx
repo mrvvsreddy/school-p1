@@ -55,7 +55,8 @@ export default function ActivitiesEditorPage() {
 
     // Initial load
     useEffect(() => {
-        fetch("/api/content")
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        fetch(`${apiUrl}/api/pages/activities`)
             .then((res) => res.json())
             .then((content) => {
                 if (content.activities) {
@@ -95,10 +96,11 @@ export default function ActivitiesEditorPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            const res = await fetch("/api/content", {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const res = await fetch(`${apiUrl}/api/pages/activities/batch`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ activities: data }),
+                body: JSON.stringify({ sections: { activities: data } }),
             });
             if (!res.ok) throw new Error("Failed to save");
             alert("Changes published successfully!");
@@ -117,7 +119,8 @@ export default function ActivitiesEditorPage() {
         setUploading(prev => ({ ...prev, [key]: true }));
 
         try {
-            const res = await fetch('/api/upload', {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const res = await fetch(`${apiUrl}/api/editor/upload`, {
                 method: 'POST',
                 body: formData
             });

@@ -29,6 +29,14 @@ except ImportError as e:
     print(f"Warning: Admin module not loaded: {e}")
     ADMIN_MODULE_LOADED = False
 
+# Import editor module
+try:
+    from editor import editor_router
+    EDITOR_MODULE_LOADED = True
+except ImportError as e:
+    print(f"Warning: Editor module not loaded: {e}")
+    EDITOR_MODULE_LOADED = False
+
 # NEW TABLE NAME
 TABLE_NAME = "site_pages_content"
 
@@ -105,6 +113,11 @@ if ADMIN_MODULE_LOADED:
     app.include_router(admin_router)
     app.include_router(auth_router)
     print("INFO:     Admin and auth routes registered")
+
+# Include editor router if loaded
+if EDITOR_MODULE_LOADED:
+    app.include_router(editor_router)
+    print("INFO:     Editor routes registered")
 
 # Configure CORS - only allow origins from environment variable
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "localhost:3000")

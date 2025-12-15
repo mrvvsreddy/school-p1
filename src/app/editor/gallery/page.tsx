@@ -40,7 +40,8 @@ export default function GalleryEditorPage() {
 
     // Initial load
     useEffect(() => {
-        fetch("/api/content")
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        fetch(`${apiUrl}/api/pages/gallery`)
             .then((res) => res.json())
             .then((content) => {
                 if (content.gallery) {
@@ -80,10 +81,11 @@ export default function GalleryEditorPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            const res = await fetch("/api/content", {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const res = await fetch(`${apiUrl}/api/pages/gallery/batch`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ gallery: data }),
+                body: JSON.stringify({ sections: { gallery: data } }),
             });
             if (!res.ok) throw new Error("Failed to save");
             alert("Changes published successfully!");
@@ -102,7 +104,8 @@ export default function GalleryEditorPage() {
         setUploading(prev => ({ ...prev, [key]: true }));
 
         try {
-            const res = await fetch('/api/upload', {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const res = await fetch(`${apiUrl}/api/editor/upload`, {
                 method: 'POST',
                 body: formData
             });
