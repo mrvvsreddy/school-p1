@@ -71,34 +71,23 @@ async def login(request: LoginRequest, response: Response):
         }
         access_token = create_access_token(token_data)
         
-        # Determine environment - check multiple indicators
-        import os
-        is_production = os.getenv("ENVIRONMENT", "").lower() == "production"
-        is_render = os.getenv("RENDER", "") == "true"
+        logger.info(f"Login successful for {user['email']}, token created")
         
-        # For cross-origin requests, SameSite='none' is required.
-        # SameSite='none' REQUIRES Secure=True in all modern browsers.
-        # Even localhost development now requires Secure=True for cross-origin.
-        samesite_value = "none"  # Required for cross-origin cookie setting
+        # Also set cookie as fallback (may not work in all browsers due to cross-origin restrictions)
+        try:
+            response.set_cookie(
+                key="auth_token",
+                value=access_token,
+                httponly=True,
+                secure=True,
+                samesite="none",
+                max_age=25200,
+                path="/"
+            )
+        except Exception as cookie_err:
+            logger.warning(f"Could not set cookie: {cookie_err}")
         
-        # Always use Secure=True for SameSite=None (required by browsers)
-        # This works because Render/Vercel use HTTPS
-        secure_value = True
-        
-        logger.info(f"Setting cookie: samesite={samesite_value}, secure={secure_value}, env=production:{is_production}, render:{is_render}")
-        
-        # Set secure HTTP-only cookie
-        response.set_cookie(
-            key="auth_token",
-            value=access_token,
-            httponly=True,  # Prevents JavaScript access
-            secure=secure_value,
-            samesite=samesite_value,
-            max_age=25200,  # 7 hours in seconds (7 * 60 * 60)
-            path="/"
-        )
-        
-        # Return user info (no token in response for security)
+        # Return user info AND token (for localStorage storage)
         user_response = {
             "id": user["id"],
             "email": user["email"],
@@ -109,7 +98,7 @@ async def login(request: LoginRequest, response: Response):
         return AuthResponse(
             success=True,
             message="Login successful",
-            token=None,  # Don't send token in response
+            token=access_token,  # Return token for localStorage
             user=user_response
         )
         

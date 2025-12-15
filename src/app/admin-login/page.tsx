@@ -28,7 +28,10 @@ export default function AdminLoginPage() {
             const data = await res.json();
 
             if (res.ok && data.success) {
-                // Store only user data (token is in HTTP-only cookie)
+                // Store token and user data in localStorage
+                if (data.token) {
+                    localStorage.setItem('auth_token', data.token);
+                }
                 localStorage.setItem('admin_user', JSON.stringify(data.user));
 
                 // Redirect to admin dashboard

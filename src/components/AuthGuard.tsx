@@ -17,10 +17,21 @@ export default function AuthGuard({ children, requiredRole = 'any' }: AuthGuardP
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                // Verify authentication with backend (cookie is sent automatically)
+                // Get token from localStorage
+                const token = localStorage.getItem('auth_token');
+
+                if (!token) {
+                    // No token, redirect to login
+                    router.push(`/admin-login?redirect=${encodeURIComponent(pathname)}`);
+                    return;
+                }
+
+                // Verify authentication with backend using Authorization header
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
                 const res = await fetch(`${apiUrl}/api/auth/verify`, {
-                    credentials: 'include' // Important: send cookies
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
                 });
 
                 if (res.ok) {
@@ -44,11 +55,15 @@ export default function AuthGuard({ children, requiredRole = 'any' }: AuthGuardP
                     // Authorized
                     setIsAuthorized(true);
                 } else {
-                    // Not authenticated - redirect to login
+                    // Token invalid - clear and redirect to login
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('admin_user');
                     router.push(`/admin-login?redirect=${encodeURIComponent(pathname)}`);
                 }
             } catch (error) {
                 console.error('Auth check failed:', error);
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('admin_user');
                 router.push(`/admin-login?redirect=${encodeURIComponent(pathname)}`);
             } finally {
                 setIsLoading(false);
