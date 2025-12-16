@@ -1,22 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-
-interface Student {
-    id: string | number;
-    name: string;
-    class: string;
-    rollNo: string;
-    status: string;
-    dob: string;
-    address: string;
-    contact: string;
-    parents: {
-        father: string;
-        mother: string;
-        phone: string;
-    };
-}
+import { updateStudent, Student } from "@/school-admin/services/studentService";
 
 interface ExamResult {
     subject: string;
@@ -28,15 +13,18 @@ interface ExamResult {
 interface StudentDetailModalProps {
     student: Student;
     onClose: () => void;
-    onEdit: (updatedStudent: Student) => void;
+    onEdit: () => void;
+    onDelete?: () => void;
 }
 
-export default function StudentDetailModal({ student, onClose, onEdit }: StudentDetailModalProps) {
+export default function StudentDetailModal({ student, onClose, onEdit, onDelete }: StudentDetailModalProps) {
     const [activeTab, setActiveTab] = useState<"Profile" | "Attendance" | "Exams">("Profile");
     const [isEditing, setIsEditing] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     // Edit State
-    const [editForm, setEditForm] = useState<Student>(student ? { ...student } : {} as Student);
+    const [editForm, setEditForm] = useState<Partial<Student>>(student ? { ...student } : {});
 
     // Exam Filters
     const [examYear, setExamYear] = useState("2023");
@@ -73,25 +61,40 @@ export default function StudentDetailModal({ student, onClose, onEdit }: Student
                 { subject: "Science", marks: 90, total: 100, grade: "A+" },
                 { subject: "English", marks: 88, total: 100, grade: "A" },
             ],
-            "Final": [] // Not yet conducted
+            "Final": []
         }
     };
 
     const currentExamResults = allExamResults[examYear]?.[examModel] || [];
 
     // --- Handlers ---
-    const handleSaveProfile = () => {
-        onEdit(editForm); // Pass updated data up
-        setIsEditing(false);
+    const handleSaveProfile = async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            await updateStudent(student.id, editForm);
+            setIsEditing(false);
+            onEdit(); // Callback to refresh
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to save changes");
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        if (name.startsWith("parents.")) {
+
+        // Handle nested personal_info fields
+        if (name.startsWith("personal_info.")) {
             const field = name.split(".")[1];
             setEditForm((prev) => ({
                 ...prev,
-                parents: { ...prev.parents, [field]: value }
+                personal_info: {
+                    ...(prev.personal_info || {}),
+                    [field]: value
+                }
             }));
         } else {
             setEditForm((prev) => ({ ...prev, [name]: value }));
@@ -104,30 +107,46 @@ export default function StudentDetailModal({ student, onClose, onEdit }: Student
                 {/* Header */}
                 <div className="p-5 border-b border-gray-100 flex items-start justify-between bg-gray-50/50">
                     <div className="flex gap-5">
-                        <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-[#C4A35A] to-[#A38842] flex items-center justify-center shadow-lg transform -translate-y-1">
-                            <span className="text-3xl font-bold text-white">{student.name.charAt(0)}</span>
-                        </div>
+                        {student.photo_url ? (
+                            <img
+                                src={student.photo_url}
+                                alt={student.name}
+                                className="w-20 h-20 rounded-xl object-cover shadow-lg"
+                            />
+                        ) : (
+                            <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-[#C4A35A] to-[#A38842] flex items-center justify-center shadow-lg transform -translate-y-1">
+                                <span className="text-3xl font-bold text-white">{student.name.charAt(0)}</span>
+                            </div>
+                        )}
                         <div>
                             <h2 className="text-xl font-bold text-gray-900">{student.name}</h2>
                             <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
                                 <span>Class {student.class}</span>
                                 <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                                <span>Roll #{student.rollNo}</span>
+                                <span>Roll #{student.roll_no}</span>
                                 <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                                <span>ID: {student.id}</span>
+                                <span>ID: {student.id.slice(0, 8)}...</span>
                             </div>
-                            <div className="mt-2 text-xs">
-                                <span className={`px-2 py-0.5 rounded font-semibold ${student.status === "Present" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                                    }`}>
-                                    {student.status} Today
-                                </span>
-                            </div>
+                            {student.admission_no && (
+                                <div className="mt-2 text-xs">
+                                    <span className="px-2 py-0.5 rounded font-semibold bg-blue-100 text-blue-700">
+                                        Adm: {student.admission_no}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors cursor-pointer">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
+
+                {/* Error Display */}
+                {error && (
+                    <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                        {error}
+                    </div>
+                )}
 
                 {/* Tabs */}
                 <div className="px-6 border-b border-gray-100">
@@ -150,23 +169,25 @@ export default function StudentDetailModal({ student, onClose, onEdit }: Student
                     {/* --- PROFILE TAB --- */}
                     {activeTab === "Profile" && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
-                            {/* Edit Mode vs View Mode */}
                             {isEditing ? (
                                 <>
                                     <div className="space-y-4 bg-white p-5 rounded-xl border border-gray-100">
                                         <h4 className="text-sm font-semibold text-gray-900">Edit Personal Details</h4>
                                         <div className="space-y-3">
-                                            <EditInput label="DOB" name="dob" value={editForm.dob} onChange={handleInputChange} />
-                                            <EditInput label="Address" name="address" value={editForm.address} onChange={handleInputChange} />
-                                            <EditInput label="Contact" name="contact" value={editForm.contact} onChange={handleInputChange} />
+                                            <EditInput label="Name" name="name" value={editForm.name || ""} onChange={handleInputChange} />
+                                            <EditInput label="DOB" name="personal_info.dob" value={editForm.personal_info?.dob || ""} onChange={handleInputChange} type="date" />
+                                            <EditInput label="Gender" name="personal_info.gender" value={editForm.personal_info?.gender || ""} onChange={handleInputChange} />
+                                            <EditInput label="Address" name="personal_info.address" value={editForm.personal_info?.address || ""} onChange={handleInputChange} />
+                                            <EditInput label="Phone" name="personal_info.phone" value={editForm.personal_info?.phone || ""} onChange={handleInputChange} />
+                                            <EditInput label="Email" name="personal_info.email" value={editForm.personal_info?.email || ""} onChange={handleInputChange} />
                                         </div>
                                     </div>
                                     <div className="space-y-4 bg-white p-5 rounded-xl border border-gray-100">
                                         <h4 className="text-sm font-semibold text-gray-900">Edit Family Details</h4>
                                         <div className="space-y-3">
-                                            <EditInput label="Father" name="parents.father" value={editForm.parents?.father} onChange={handleInputChange} />
-                                            <EditInput label="Mother" name="parents.mother" value={editForm.parents?.mother} onChange={handleInputChange} />
-                                            <EditInput label="Phone" name="parents.phone" value={editForm.parents?.phone} onChange={handleInputChange} />
+                                            <EditInput label="Father" name="personal_info.father_name" value={editForm.personal_info?.father_name || ""} onChange={handleInputChange} />
+                                            <EditInput label="Mother" name="personal_info.mother_name" value={editForm.personal_info?.mother_name || ""} onChange={handleInputChange} />
+                                            <EditInput label="Guardian Phone" name="personal_info.guardian_phone" value={editForm.personal_info?.guardian_phone || ""} onChange={handleInputChange} />
                                         </div>
                                     </div>
                                 </>
@@ -175,18 +196,20 @@ export default function StudentDetailModal({ student, onClose, onEdit }: Student
                                     <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
                                         <h4 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wide">Personal Details</h4>
                                         <div className="space-y-3">
-                                            <DetailRow label="Date of Birth" value={student.dob} />
-                                            <DetailRow label="Gender" value="Male" />
-                                            <DetailRow label="Address" value={student.address} />
-                                            <DetailRow label="Contact" value={student.contact} />
+                                            <DetailRow label="Date of Birth" value={student.personal_info?.dob || ""} />
+                                            <DetailRow label="Gender" value={student.personal_info?.gender || ""} />
+                                            <DetailRow label="Blood Group" value={student.personal_info?.blood_group || ""} />
+                                            <DetailRow label="Address" value={student.personal_info?.address || ""} />
+                                            <DetailRow label="Phone" value={student.personal_info?.phone || ""} />
+                                            <DetailRow label="Email" value={student.personal_info?.email || ""} />
                                         </div>
                                     </div>
                                     <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
                                         <h4 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wide">Family Details</h4>
                                         <div className="space-y-3">
-                                            <DetailRow label="Father" value={student.parents?.father} />
-                                            <DetailRow label="Mother" value={student.parents?.mother} />
-                                            <DetailRow label="Phone" value={student.parents?.phone} />
+                                            <DetailRow label="Father" value={student.personal_info?.father_name || ""} />
+                                            <DetailRow label="Mother" value={student.personal_info?.mother_name || ""} />
+                                            <DetailRow label="Guardian Phone" value={student.personal_info?.guardian_phone || ""} />
                                         </div>
                                     </div>
                                 </>
@@ -207,14 +230,12 @@ export default function StudentDetailModal({ student, onClose, onEdit }: Student
                             <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm relative z-0">
                                 <h4 className="text-sm font-semibold text-gray-900 mb-6">Monthly Attendance</h4>
                                 <div className="h-48 flex items-end gap-2 px-2">
-                                    {/* Mock Bar Chart with Tooltip */}
                                     {[95, 88, 92, 85, 96, 90, 88, 94, 98, 91, 89, 93].map((h, i) => (
                                         <div key={i} className="flex-1 bg-gray-50 rounded-t relative group h-full flex items-end">
                                             <div
                                                 className="w-full bg-[#C4A35A] rounded-t transition-all group-hover:opacity-90"
                                                 style={{ height: `${h}%` }}
                                             ></div>
-                                            {/* Tooltip on Hover */}
                                             <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-800 text-white text-[10px] py-1 px-2 rounded whitespace-nowrap z-10 shadow-lg">
                                                 {h}% Present
                                                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
@@ -232,7 +253,6 @@ export default function StudentDetailModal({ student, onClose, onEdit }: Student
                     {/* --- EXAMS TAB --- */}
                     {activeTab === "Exams" && (
                         <div className="space-y-5 animate-fadeIn">
-                            {/* Filters */}
                             <div className="flex gap-4">
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-gray-500">Year</label>
@@ -266,7 +286,6 @@ export default function StudentDetailModal({ student, onClose, onEdit }: Student
                                 </div>
                             </div>
 
-                            {/* Results Table */}
                             <div className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
                                 <table className="w-full">
                                     <thead className="bg-gray-50 border-b border-gray-100">
@@ -308,33 +327,61 @@ export default function StudentDetailModal({ student, onClose, onEdit }: Student
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-gray-100 bg-white flex justify-end gap-3">
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-2 text-sm text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
-                    >
-                        Close
-                    </button>
-                    {activeTab === "Profile" && ( // Edit only shows on Profile tab
-                        isEditing ? (
+                <div className="p-4 border-t border-gray-100 bg-white flex justify-between">
+                    <div>
+                        {onDelete && (
                             <button
-                                onClick={handleSaveProfile}
-                                className="px-5 py-2 text-sm bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm cursor-pointer"
+                                onClick={onDelete}
+                                className="px-4 py-2 text-sm text-red-600 font-medium hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                             >
-                                Save Changes
+                                Delete Student
                             </button>
-                        ) : (
-                            <button
-                                onClick={() => setIsEditing(true)}
-                                className="px-5 py-2 text-sm bg-[#C4A35A] text-white font-medium rounded-lg hover:bg-[#A38842] transition-colors shadow-sm flex items-center gap-2 cursor-pointer"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                </svg>
-                                Edit Profile
-                            </button>
-                        )
-                    )}
+                        )}
+                    </div>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={onClose}
+                            className="px-4 py-2 text-sm text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                        >
+                            Close
+                        </button>
+                        {activeTab === "Profile" && (
+                            isEditing ? (
+                                <>
+                                    <button
+                                        onClick={() => setIsEditing(false)}
+                                        disabled={loading}
+                                        className="px-4 py-2 text-sm text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleSaveProfile}
+                                        disabled={loading}
+                                        className="px-5 py-2 text-sm bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                                    >
+                                        {loading && (
+                                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                        )}
+                                        Save Changes
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="px-5 py-2 text-sm bg-[#C4A35A] text-white font-medium rounded-lg hover:bg-[#A38842] transition-colors shadow-sm flex items-center gap-2 cursor-pointer"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                    Edit Profile
+                                </button>
+                            )
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
@@ -351,11 +398,12 @@ function DetailRow({ label, value }: { label: string, value: string }) {
     );
 }
 
-function EditInput({ label, value, onChange, name }: { label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; name: string }) {
+function EditInput({ label, value, onChange, name, type = "text" }: { label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; name: string; type?: string }) {
     return (
         <div>
             <label className="text-[10px] uppercase font-bold text-gray-400 block mb-1">{label}</label>
             <input
+                type={type}
                 name={name}
                 value={value || ""}
                 onChange={onChange}

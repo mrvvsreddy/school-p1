@@ -60,6 +60,30 @@ except ImportError as e:
     print(f"Warning: Editor module not loaded: {e}")
     EDITOR_MODULE_LOADED = False
 
+# Import students module
+try:
+    from students import students_router
+    STUDENTS_MODULE_LOADED = True
+except ImportError as e:
+    print(f"Warning: Students module not loaded: {e}")
+    STUDENTS_MODULE_LOADED = False
+
+# Import teachers module
+try:
+    from teachers import teachers_router
+    TEACHERS_MODULE_LOADED = True
+except ImportError as e:
+    print(f"Warning: Teachers module not loaded: {e}")
+    TEACHERS_MODULE_LOADED = False
+
+# Import classes module
+try:
+    from classes import classes_router
+    CLASSES_MODULE_LOADED = True
+except ImportError as e:
+    print(f"Warning: Classes module not loaded: {e}")
+    CLASSES_MODULE_LOADED = False
+
 # NEW TABLE NAME
 TABLE_NAME = "site_pages_content"
 
@@ -141,6 +165,21 @@ if ADMIN_MODULE_LOADED:
 if EDITOR_MODULE_LOADED:
     app.include_router(editor_router)
     print("INFO:     Editor routes registered")
+
+# Include students router if loaded
+if STUDENTS_MODULE_LOADED:
+    app.include_router(students_router)
+    print("INFO:     Students routes registered")
+
+# Include teachers router if loaded
+if TEACHERS_MODULE_LOADED:
+    app.include_router(teachers_router)
+    print("INFO:     Teachers routes registered")
+
+# Include classes router if loaded
+if CLASSES_MODULE_LOADED:
+    app.include_router(classes_router)
+    print("INFO:     Classes routes registered")
 
 # Configure CORS - only allow origins from environment variable
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "localhost:3000")

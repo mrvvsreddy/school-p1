@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const menuItems = [
     { name: "Dashboard", icon: "dashboard", path: "/school-admin" },
@@ -11,11 +11,6 @@ const menuItems = [
     { name: "Class", icon: "class", path: "/school-admin/class" },
     { name: "Exam", icon: "exam", path: "/school-admin/exam" },
     { name: "Notice", icon: "notice", path: "/school-admin/notice" },
-];
-
-const bottomMenuItems = [
-    { name: "Settings", icon: "settings", path: "/school-admin/settings" },
-    { name: "Log out", icon: "logout", path: "/" },
 ];
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -64,21 +59,21 @@ const iconMap: Record<string, React.ReactNode> = {
 
 export default function AdminSidebar() {
     const pathname = usePathname();
+    const router = useRouter();
+
+    const handleLogout = () => {
+        // Clear any auth tokens/cookies
+        document.cookie = "admin_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = "session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        localStorage.removeItem("adminToken");
+        localStorage.removeItem("user");
+
+        // Redirect to home page
+        router.push("/");
+    };
 
     return (
         <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-gray-100 flex flex-col z-50">
-            {/* Logo */}
-            <div className="p-6 border-b border-gray-100">
-                <Link href="/school-admin" className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#C4A35A] to-[#8B7355] rounded-xl flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">B</span>
-                    </div>
-                    <span className="text-xl font-bold text-[#333]" style={{ fontFamily: "var(--font-playfair)" }}>
-                        BalaYesu
-                    </span>
-                </Link>
-            </div>
-
             {/* Main Menu */}
             <nav className="flex-1 py-6 px-4 overflow-y-auto">
                 <ul className="space-y-1">
@@ -102,29 +97,15 @@ export default function AdminSidebar() {
                 </ul>
             </nav>
 
-            {/* Bottom Menu */}
+            {/* Bottom Menu - Logout Button */}
             <div className="p-4 border-t border-gray-100">
-                <ul className="space-y-1">
-                    {bottomMenuItems.map((item) => {
-                        const isActive = pathname === item.path;
-                        return (
-                            <li key={item.name}>
-                                <Link
-                                    href={item.path}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                                        ? "bg-[#C4A35A] text-white"
-                                        : item.name === "Log out"
-                                            ? "text-red-500 hover:bg-red-50"
-                                            : "text-[#666] hover:bg-gray-50 hover:text-[#333]"
-                                        }`}
-                                >
-                                    {iconMap[item.icon]}
-                                    <span className="font-medium">{item.name}</span>
-                                </Link>
-                            </li>
-                        );
-                    })}
-                </ul>
+                <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-red-500 hover:bg-red-50 w-full cursor-pointer"
+                >
+                    {iconMap.logout}
+                    <span className="font-medium">Log out</span>
+                </button>
             </div>
         </aside>
     );

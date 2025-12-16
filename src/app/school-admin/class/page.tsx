@@ -1,49 +1,71 @@
 "use client";
 
-import React, { useState } from "react";
-import { classes } from "@/school-admin/data/mockData";
+import React, { useState, useEffect, useCallback } from "react";
+import { getClasses, deleteClass, Class } from "@/school-admin/services/classService";
 import ClassDetailModal from "@/school-admin/components/ClassDetailModal";
 import AddClassModal from "@/school-admin/components/AddClassModal";
 
-interface ClassData {
-    id: number;
-    name: string;
-    grade: string;
-    section: string;
-    classTeacher: string;
-    studentsCount: number;
-    capacity: number;
-    room: string;
-    attendance: {
-        today: number;
-        history: number[];
-    };
-    subjects: { name: string; teacher: string }[];
-    schedule: { time: string; subject: string }[];
-}
-
 export default function ClassesPage() {
-    const [classList, setClassList] = useState<ClassData[]>(classes);
-    const [selectedClass, setSelectedClass] = useState<ClassData | null>(null);
+    // State
+    const [classList, setClassList] = useState<Class[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [selectedClass, setSelectedClass] = useState<Class | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [totalClasses, setTotalClasses] = useState(0);
 
-    const filteredClasses = classList.filter(cls =>
-        cls.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        cls.classTeacher.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Fetch classes from API
+    const fetchClasses = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const filters: { search?: string } = {};
+            if (searchQuery) filters.search = searchQuery;
 
-    const handleAddClass = (newClass: { name: string; grade: string; section: string; classTeacher: string; capacity: number; room: string }) => {
-        const classWithMockData: ClassData = {
-            ...newClass,
-            id: classList.length + 1,
-            studentsCount: 0,
-            attendance: { today: 0, history: [0, 0, 0, 0, 0, 0, 0] },
-            subjects: [],
-            schedule: []
-        };
-        setClassList([...classList, classWithMockData]);
+            const response = await getClasses(filters);
+            setClassList(response.classes);
+            setTotalClasses(response.total);
+        } catch (err) {
+            console.error("Error fetching classes:", err);
+            setError(err instanceof Error ? err.message : "Failed to load classes");
+        } finally {
+            setLoading(false);
+        }
+    }, [searchQuery]);
+
+    useEffect(() => {
+        fetchClasses();
+    }, [fetchClasses]);
+
+    // Handle class added
+    const handleClassAdded = () => {
+        setIsAddModalOpen(false);
+        fetchClasses();
     };
+
+    // Handle class updated
+    const handleClassUpdated = () => {
+        setSelectedClass(null);
+        fetchClasses();
+    };
+
+    // Handle delete
+    const handleDeleteClass = async (classId: string) => {
+        if (!confirm("Are you sure you want to delete this class?")) return;
+
+        try {
+            await deleteClass(classId);
+            fetchClasses();
+            setSelectedClass(null);
+        } catch (err) {
+            alert(err instanceof Error ? err.message : "Failed to delete class");
+        }
+    };
+
+    // Compute total students
+    const totalStudents = classList.reduce((sum, cls) => sum + (cls.students_count || 0), 0);
+    const totalCapacity = classList.reduce((sum, cls) => sum + (cls.capacity || 0), 0);
 
     return (
         <div className="space-y-6">
@@ -61,6 +83,31 @@ export default function ClassesPage() {
                 </button>
             </div>
 
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between">
+                        <p className="text-sm text-gray-500">Total Classes</p>
+                        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    </div>
+                    <p className="text-2xl font-bold text-[#333] mt-2">{totalClasses}</p>
+                </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between">
+                        <p className="text-sm text-gray-500">Total Students</p>
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    </div>
+                    <p className="text-2xl font-bold text-[#333] mt-2">{totalStudents}</p>
+                </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between">
+                        <p className="text-sm text-gray-500">Total Capacity</p>
+                        <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                    </div>
+                    <p className="text-2xl font-bold text-[#333] mt-2">{totalCapacity}</p>
+                </div>
+            </div>
+
             {/* List View Container */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-6 border-b border-gray-100 flex items-center justify-between gap-4">
@@ -68,7 +115,7 @@ export default function ClassesPage() {
                     <div className="relative">
                         <input
                             type="text"
-                            placeholder="Search class or teacher..."
+                            placeholder="Search class or room..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="pl-10 pr-4 py-2 bg-gray-50 rounded-lg border border-gray-200 focus:outline-none focus:border-[#C4A35A] w-64"
@@ -79,79 +126,77 @@ export default function ClassesPage() {
                     </div>
                 </div>
 
-                <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-100">
-                        <tr>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Class Name</th>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Class Teacher</th>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Students</th>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Room</th>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Attendance</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                        {filteredClasses.length > 0 ? (
-                            filteredClasses.map((cls) => (
-                                <tr
-                                    key={cls.id}
-                                    onClick={() => setSelectedClass(cls)}
-                                    className="hover:bg-gray-50 cursor-pointer transition-colors"
-                                >
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-[#C4A35A]/10 flex items-center justify-center text-[#C4A35A] font-bold text-sm">
-                                                {cls.name}
+                {loading ? (
+                    <div className="p-12 text-center">
+                        <div className="inline-block w-8 h-8 border-4 border-[#C4A35A] border-t-transparent rounded-full animate-spin"></div>
+                        <p className="mt-4 text-gray-500">Loading classes...</p>
+                    </div>
+                ) : error ? (
+                    <div className="p-12 text-center">
+                        <p className="text-red-500">{error}</p>
+                        <button onClick={fetchClasses} className="mt-4 text-[#C4A35A] hover:underline">
+                            Try again
+                        </button>
+                    </div>
+                ) : (
+                    <table className="w-full">
+                        <thead className="bg-gray-50 border-b border-gray-100">
+                            <tr>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Class</th>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Class Teacher</th>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Students</th>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Room</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {classList.length > 0 ? (
+                                classList.map((cls) => (
+                                    <tr
+                                        key={cls.id}
+                                        onClick={() => setSelectedClass(cls)}
+                                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                                    >
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-[#C4A35A]/10 flex items-center justify-center text-[#C4A35A] font-bold text-sm">
+                                                    {cls.class}-{cls.section}
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-gray-900">Class {cls.class}</p>
+                                                    <p className="text-xs text-gray-500">Section {cls.section}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-semibold text-gray-900">{cls.grade}</p>
-                                                <p className="text-xs text-gray-500">Section {cls.section}</p>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-medium text-gray-700">
+                                            {cls.class_teacher_name || "Not Assigned"}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-600">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-semibold text-gray-900">{cls.students_count || 0}</span>
+                                                <span className="text-gray-400">/ {cls.capacity}</span>
+                                                <div className="w-16 h-1.5 bg-gray-100 rounded-full ml-2">
+                                                    <div
+                                                        className="h-full bg-[#C4A35A] rounded-full"
+                                                        style={{ width: `${Math.min(100, ((cls.students_count || 0) / cls.capacity) * 100)}%` }}
+                                                    ></div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm font-medium text-gray-700">
-                                        {cls.classTeacher}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-semibold text-gray-900">{cls.studentsCount}</span>
-                                            <span className="text-gray-400">/ {cls.capacity}</span>
-                                            <div className="w-16 h-1.5 bg-gray-100 rounded-full ml-2">
-                                                <div
-                                                    className="h-full bg-[#C4A35A] rounded-full"
-                                                    style={{ width: `${(cls.studentsCount / cls.capacity) * 100}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600 font-medium">
-                                        {cls.room}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex flex-col gap-1 w-24">
-                                            <div className="flex justify-between items-center text-xs mb-0.5">
-                                                <span className="font-semibold text-gray-700">{cls.attendance.today}%</span>
-                                            </div>
-                                            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                                <div
-                                                    className={`h-full rounded-full ${cls.attendance.today > 90 ? "bg-green-500" :
-                                                        cls.attendance.today > 75 ? "bg-yellow-500" : "bg-red-500"
-                                                        }`}
-                                                    style={{ width: `${cls.attendance.today}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-600 font-medium">
+                                            {cls.room || "N/A"}
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                                        No classes found.
                                     </td>
                                 </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                                    No classes found matching your search.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                            )}
+                        </tbody>
+                    </table>
+                )}
             </div>
 
             {/* Modals */}
@@ -159,13 +204,15 @@ export default function ClassesPage() {
                 <ClassDetailModal
                     classData={selectedClass}
                     onClose={() => setSelectedClass(null)}
+                    onEdit={handleClassUpdated}
+                    onDelete={() => handleDeleteClass(selectedClass.id)}
                 />
             )}
 
             {isAddModalOpen && (
                 <AddClassModal
                     onClose={() => setIsAddModalOpen(false)}
-                    onAdd={handleAddClass}
+                    onAdd={handleClassAdded}
                 />
             )}
         </div>

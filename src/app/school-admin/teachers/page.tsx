@@ -1,61 +1,71 @@
 "use client";
 
-import React, { useState } from "react";
-import { recentTeachers } from "@/school-admin/data/mockData";
+import React, { useState, useEffect, useCallback } from "react";
+import { getTeachers, deleteTeacher, Teacher } from "@/school-admin/services/teacherService";
 import TeacherDetailModal from "@/school-admin/components/TeacherDetailModal";
 import AddTeacherModal from "@/school-admin/components/AddTeacherModal";
 
-interface Teacher {
-    id: number;
-    name: string;
-    subject: string;
-    department: string;
-    status: string;
-    dob: string;
-    address: string;
-    contact: string;
-    email: string;
-    joinDate: string;
-    salary: string | number;
-    bankAccount: string;
-}
-
 export default function TeachersPage() {
     // State
-    const [teachers, setTeachers] = useState<Teacher[]>(recentTeachers);
+    const [teachers, setTeachers] = useState<Teacher[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
-    const [deptFilter, setDeptFilter] = useState("All");
-    const [statusFilter, setStatusFilter] = useState("All");
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [totalTeachers, setTotalTeachers] = useState(0);
 
-    // Derived Data
-    const totalTeachers = teachers.length;
+    // Fetch teachers from API
+    const fetchTeachers = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const filters: { search?: string } = {};
+            if (searchQuery) filters.search = searchQuery;
+
+            const response = await getTeachers(filters);
+            setTeachers(response.teachers);
+            setTotalTeachers(response.total);
+        } catch (err) {
+            console.error("Error fetching teachers:", err);
+            setError(err instanceof Error ? err.message : "Failed to load teachers");
+        } finally {
+            setLoading(false);
+        }
+    }, [searchQuery]);
+
+    useEffect(() => {
+        fetchTeachers();
+    }, [fetchTeachers]);
+
+    // Handle teacher added
+    const handleTeacherAdded = () => {
+        setIsAddModalOpen(false);
+        fetchTeachers();
+    };
+
+    // Handle teacher updated
+    const handleTeacherUpdated = () => {
+        setSelectedTeacher(null);
+        fetchTeachers();
+    };
+
+    // Handle teacher delete
+    const handleDeleteTeacher = async (teacherId: string) => {
+        if (!confirm("Are you sure you want to delete this teacher?")) return;
+
+        try {
+            await deleteTeacher(teacherId);
+            fetchTeachers();
+            setSelectedTeacher(null);
+        } catch (err) {
+            alert(err instanceof Error ? err.message : "Failed to delete teacher");
+        }
+    };
+
+    // Derived stats
     const activeTeachers = teachers.filter(t => t.status === "Active").length;
     const onLeave = teachers.filter(t => t.status === "On Leave").length;
-    const absentToday = 0; // Placeholder
-
-    // Filtering Logic
-    const filteredTeachers = teachers.filter(teacher => {
-        const matchesSearch = teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            teacher.subject.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesDept = deptFilter === "All" || teacher.department === deptFilter;
-        // Simple status filter
-        const matchesStatus = statusFilter === "All" ||
-            (statusFilter === "Present" && teacher.status === "Active") ||
-            (statusFilter === "Leave" && teacher.status === "On Leave");
-
-        return matchesSearch && matchesDept && matchesStatus;
-    });
-
-    const handleAddTeacher = (newTeacher: Partial<Teacher>) => {
-        const teacherWithId = { ...newTeacher, id: teachers.length + 1 } as Teacher;
-        setTeachers([...teachers, teacherWithId]);
-    };
-
-    const handleStatClick = (status: string) => {
-        setStatusFilter(status === statusFilter ? "All" : status);
-    };
 
     return (
         <div className="space-y-6">
@@ -75,51 +85,38 @@ export default function TeachersPage() {
                 </button>
             </div>
 
-            {/* Stats - Clickable Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {[
-                    { label: "Total Teachers", value: totalTeachers, color: "bg-blue-500", filter: "All" },
-                    { label: "Present Today", value: activeTeachers, color: "bg-green-500", filter: "Present" },
-                    { label: "Absent Today", value: absentToday, color: "bg-red-500", filter: "Absent" }, // Mocked
-                    { label: "On Leave", value: onLeave, color: "bg-yellow-500", filter: "Leave" },
-                ].map((stat) => (
-                    <div
-                        key={stat.label}
-                        onClick={() => handleStatClick(stat.filter)}
-                        className={`bg-white rounded-xl p-4 shadow-sm border transition-all cursor-pointer ${statusFilter === stat.filter
-                            ? "border-[#C4A35A] ring-1 ring-[#C4A35A] bg-[#C4A35A]/5"
-                            : "border-gray-100 hover:border-[#C4A35A]/50"
-                            }`}
-                    >
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm text-gray-500">{stat.label}</p>
-                            <div className={`w-2 h-2 rounded-full ${stat.color}`}></div>
-                        </div>
-                        <p className="text-2xl font-bold text-[#333] mt-2">{stat.value}</p>
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between">
+                        <p className="text-sm text-gray-500">Total Teachers</p>
+                        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                     </div>
-                ))}
+                    <p className="text-2xl font-bold text-[#333] mt-2">{totalTeachers}</p>
+                </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between">
+                        <p className="text-sm text-gray-500">Active</p>
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    </div>
+                    <p className="text-2xl font-bold text-[#333] mt-2">{activeTeachers}</p>
+                </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between">
+                        <p className="text-sm text-gray-500">On Leave</p>
+                        <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                    </div>
+                    <p className="text-2xl font-bold text-[#333] mt-2">{onLeave}</p>
+                </div>
             </div>
 
-            {/* Teachers Table Section */}
+            {/* Teachers Table */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-6 border-b border-gray-100">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <h3 className="text-lg font-semibold text-[#333]">All Teachers</h3>
 
                         <div className="flex items-center gap-3">
-                            {/* Department Filter */}
-                            <select
-                                value={deptFilter}
-                                onChange={(e) => setDeptFilter(e.target.value)}
-                                className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200 focus:outline-none focus:border-[#C4A35A] cursor-pointer"
-                            >
-                                <option value="All">All Departments</option>
-                                <option value="Science">Science</option>
-                                <option value="Arts">Arts</option>
-                                <option value="Commerce">Commerce</option>
-                                <option value="Sports">Sports</option>
-                            </select>
-
                             {/* Search Bar */}
                             <div className="relative">
                                 <input
@@ -137,82 +134,103 @@ export default function TeachersPage() {
                     </div>
                 </div>
 
-                <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-100">
-                        <tr>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Subject</th>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Join Date</th>
-                            <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                        {filteredTeachers.length > 0 ? (
-                            filteredTeachers.map((teacher) => (
-                                <tr
-                                    key={teacher.id}
-                                    onClick={() => setSelectedTeacher(teacher)}
-                                    className="hover:bg-gray-50 cursor-pointer transition-colors"
-                                >
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8B7355] to-[#C4A35A] flex items-center justify-center text-white font-medium text-sm">
-                                                {teacher.name.charAt(0)}
+                {loading ? (
+                    <div className="p-12 text-center">
+                        <div className="inline-block w-8 h-8 border-4 border-[#C4A35A] border-t-transparent rounded-full animate-spin"></div>
+                        <p className="mt-4 text-gray-500">Loading teachers...</p>
+                    </div>
+                ) : error ? (
+                    <div className="p-12 text-center">
+                        <p className="text-red-500">{error}</p>
+                        <button onClick={fetchTeachers} className="mt-4 text-[#C4A35A] hover:underline">
+                            Try again
+                        </button>
+                    </div>
+                ) : (
+                    <table className="w-full">
+                        <thead className="bg-gray-50 border-b border-gray-100">
+                            <tr>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Subject</th>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Join Date</th>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {teachers.length > 0 ? (
+                                teachers.map((teacher) => (
+                                    <tr
+                                        key={teacher.id}
+                                        onClick={() => setSelectedTeacher(teacher)}
+                                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                                    >
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                {teacher.photo_url ? (
+                                                    <img
+                                                        src={teacher.photo_url}
+                                                        alt={teacher.name}
+                                                        className="w-9 h-9 rounded-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8B7355] to-[#C4A35A] flex items-center justify-center text-white font-medium text-sm">
+                                                        {teacher.name.charAt(0)}
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <p className="font-medium text-sm text-[#333]">{teacher.name}</p>
+                                                    <p className="text-xs text-gray-400">{teacher.employee_id}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-medium text-sm text-[#333]">{teacher.name}</p>
-                                                <p className="text-xs text-gray-400">ID: {teacher.id}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="text-sm text-gray-700 font-medium">
-                                            {teacher.subject}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="inline-flex px-2.5 py-0.5 rounded-md bg-gray-100 text-gray-700 text-xs font-medium border border-gray-200">
-                                            {teacher.department}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600 font-medium">{teacher.contact || "N/A"}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">{teacher.joinDate || "N/A"}</td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${teacher.status === "Active"
-                                            ? "bg-green-50 text-green-700 ring-1 ring-green-600/20"
-                                            : "bg-yellow-50 text-yellow-700 ring-1 ring-yellow-600/20"
-                                            }`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${teacher.status === "Active" ? "bg-green-600" : "bg-yellow-600"
-                                                }`}></span>
-                                            {teacher.status}
-                                        </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-sm text-gray-700 font-medium">
+                                                {teacher.subject}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-600 font-medium">
+                                            {teacher.personal_info?.phone || "N/A"}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-600">{teacher.join_date || "N/A"}</td>
+                                        <td className="px-6 py-4">
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${teacher.status === "Active"
+                                                ? "bg-green-50 text-green-700 ring-1 ring-green-600/20"
+                                                : "bg-yellow-50 text-yellow-700 ring-1 ring-yellow-600/20"
+                                                }`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${teacher.status === "Active" ? "bg-green-600" : "bg-yellow-600"
+                                                    }`}></span>
+                                                {teacher.status || "Active"}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                                        {error ? "Unable to load teachers." : "No teachers found."}
                                     </td>
                                 </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                                    No teachers found matching your filters.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                            )}
+                        </tbody>
+                    </table>
+                )}
             </div>
 
             {/* Modals */}
-            <TeacherDetailModal
-                teacher={selectedTeacher!}
-                onClose={() => setSelectedTeacher(null)}
-                onEdit={() => alert("Edit functionality coming soon")}
-            />
+            {selectedTeacher && (
+                <TeacherDetailModal
+                    teacher={selectedTeacher}
+                    onClose={() => setSelectedTeacher(null)}
+                    onEdit={handleTeacherUpdated}
+                    onDelete={() => handleDeleteTeacher(selectedTeacher.id)}
+                />
+            )}
 
             {isAddModalOpen && (
                 <AddTeacherModal
                     onClose={() => setIsAddModalOpen(false)}
-                    onAdd={handleAddTeacher}
+                    onAdd={handleTeacherAdded}
                 />
             )}
         </div>
