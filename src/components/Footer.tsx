@@ -36,6 +36,11 @@ interface FooterLink {
 }
 
 interface FooterData {
+    logo: {
+        image: string;
+        text: string;
+        subtext: string;
+    };
     links: {
         quickLinks: FooterLink[];
         academics: FooterLink[];
@@ -139,12 +144,21 @@ export default function Footer({ initialData = null }: FooterProps) {
                         className="lg:col-span-2"
                     >
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 rounded-full border-2 border-[#C4A35A] flex items-center justify-center">
-                                <span className="text-xl font-bold text-[#C4A35A]" style={{ fontFamily: "var(--font-playfair)" }}>B</span>
-                            </div>
+                            {data.logo?.image ? (
+                                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#C4A35A]">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={data.logo.image} alt="Logo" className="w-full h-full object-cover" />
+                                </div>
+                            ) : (
+                                <div className="w-12 h-12 rounded-full border-2 border-[#C4A35A] flex items-center justify-center">
+                                    <span className="text-xl font-bold text-[#C4A35A]" style={{ fontFamily: "var(--font-playfair)" }}>
+                                        {(data.logo?.text || "B").charAt(0)}
+                                    </span>
+                                </div>
+                            )}
                             <div>
-                                <h3 className="text-lg font-semibold">BALAYEASU</h3>
-                                <p className="text-xs text-[#888] tracking-widest">SCHOOL</p>
+                                <h3 className="text-lg font-semibold">{data.logo?.text || "BALAYEASU"}</h3>
+                                <p className="text-xs text-[#888] tracking-widest">{data.logo?.subtext || "SCHOOL"}</p>
                             </div>
                         </div>
                         <p className="text-[#888] text-sm leading-relaxed mb-6 max-w-md">

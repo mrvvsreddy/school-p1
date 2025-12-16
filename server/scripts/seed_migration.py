@@ -132,6 +132,21 @@ courses_data = [
     },
 ]
 
+# Header Data
+header_data = {
+    "schoolName": "BALAYEASU",
+    "schoolSubtitle": "SCHOOL",
+    "logoImage": "",
+    "navLinks": [
+        { "name": "About", "href": "/about" },
+        { "name": "Academics", "href": "/academics" },
+        { "name": "Facilities", "href": "/facilities" },
+        { "name": "Activities", "href": "/activities" },
+        { "name": "Admissions", "href": "/admissions" },
+        { "name": "Contact", "href": "/contact" },
+    ]
+}
+
 footer_data = {
     "links": {
         "quickLinks": [
@@ -356,6 +371,7 @@ async def migrate():
         {"page_slug": "activities", "section_key": "activities", "content": activities_page_data},
         {"page_slug": "activities", "section_key": "list", "content": {"list": activities_data}},  # Legacy support
         {"page_slug": "academics", "section_key": "courses", "content": {"list": courses_data}},
+        {"page_slug": "shared", "section_key": "header", "content": header_data},
         {"page_slug": "shared", "section_key": "footer", "content": footer_data},
         
         # New Items

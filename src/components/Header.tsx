@@ -4,30 +4,70 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
-// Define props interface
-interface HeaderProps {
-    logo?: {
-        image: string;
-    };
-    navLinks?: {
-        name: string;
-        href: string;
-    }[];
+// Define interfaces to match database structure
+interface NavLink {
+    name: string;
+    href: string;
+    visible?: boolean;
 }
 
-const defaultNavLinks = [
-    { name: "About", href: "/about" },
-    { name: "Academics", href: "/academics" },
-    { name: "Facilities", href: "/facilities" },
-    { name: "Activities", href: "/activities" },
-    { name: "Admissions", href: "/admissions" },
-    { name: "Contact", href: "/contact" },
-];
+interface HeaderData {
+    logo: {
+        image: string;
+        text: string;
+        subtext: string;
+    };
+    navLinks: NavLink[];
+}
 
-export default function Header({ logo, navLinks = defaultNavLinks }: HeaderProps) {
+const defaultData: HeaderData = {
+    logo: {
+        image: "",
+        text: "BALAYEASU",
+        subtext: "SCHOOL"
+    },
+    navLinks: [
+        { name: "About", href: "/about", visible: true },
+        { name: "Academics", href: "/academics", visible: true },
+        { name: "Facilities", href: "/facilities", visible: true },
+        { name: "Activities", href: "/activities", visible: true },
+        { name: "Admissions", href: "/admissions", visible: true },
+        { name: "Contact", href: "/contact", visible: true },
+    ]
+};
+
+export default function Header() {
+    const [data, setData] = useState<HeaderData>(defaultData);
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+    // Fetch header data from database
+    useEffect(() => {
+        const fetchHeaderData = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                const res = await fetch(`${apiUrl}/api/pages/shared`);
+                const json = await res.json();
+                const headerData = json.header || {};
+
+                if (headerData && Object.keys(headerData).length > 0) {
+                    setData({
+                        logo: {
+                            image: headerData.logo?.image || defaultData.logo.image,
+                            text: headerData.logo?.text || defaultData.logo.text,
+                            subtext: headerData.logo?.subtext || defaultData.logo.subtext
+                        },
+                        navLinks: headerData.navLinks || defaultData.navLinks
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to load header data:", error);
+            }
+        };
+        fetchHeaderData();
+    }, []);
+
+    // Handle scroll
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 50);
@@ -36,6 +76,9 @@ export default function Header({ logo, navLinks = defaultNavLinks }: HeaderProps
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
+
+    // Filter visible nav links
+    const visibleNavLinks = data.navLinks.filter(link => link.visible !== false);
 
     return (
         <motion.header
@@ -50,7 +93,7 @@ export default function Header({ logo, navLinks = defaultNavLinks }: HeaderProps
             <div className="container mx-auto px-6 flex items-center justify-between">
                 {/* Left Navigation */}
                 <nav className="hidden lg:flex items-center gap-8">
-                    {navLinks.slice(0, 3).map((link, index) => (
+                    {visibleNavLinks.slice(0, 3).map((link, index) => (
                         <motion.div
                             key={link.name}
                             initial={{ opacity: 0, y: -20 }}
@@ -76,10 +119,10 @@ export default function Header({ logo, navLinks = defaultNavLinks }: HeaderProps
                     className="flex items-center justify-center"
                 >
                     <Link href="/" className="flex flex-col items-center">
-                        {logo?.image ? (
+                        {data.logo.image ? (
                             <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={logo.image} alt="School Logo" className="w-full h-full object-cover" />
+                                <img src={data.logo.image} alt="School Logo" className="w-full h-full object-cover" />
                             </div>
                         ) : (
                             <div
@@ -92,33 +135,29 @@ export default function Header({ logo, navLinks = defaultNavLinks }: HeaderProps
                                             }`}
                                         style={{ fontFamily: "var(--font-playfair)" }}
                                     >
-                                        B
+                                        {data.logo.text.charAt(0)}
                                     </span>
                                 </div>
                             </div>
                         )}
-                        {!logo?.image && (
-                            <>
-                                <span
-                                    className={`mt-1 text-xs font-semibold tracking-widest ${isScrolled ? "text-[#333]" : "text-white"
-                                        }`}
-                                >
-                                    BALAYEASU
-                                </span>
-                                <span
-                                    className={`text-[8px] tracking-[0.2em] ${isScrolled ? "text-[#666]" : "text-white/80"
-                                        }`}
-                                >
-                                    SCHOOL
-                                </span>
-                            </>
-                        )}
+                        <span
+                            className={`mt-1 text-xs font-semibold tracking-widest ${isScrolled ? "text-[#333]" : "text-white"
+                                }`}
+                        >
+                            {data.logo.text}
+                        </span>
+                        <span
+                            className={`text-[8px] tracking-[0.2em] ${isScrolled ? "text-[#666]" : "text-white/80"
+                                }`}
+                        >
+                            {data.logo.subtext}
+                        </span>
                     </Link>
                 </motion.div>
 
                 {/* Right Navigation */}
                 <nav className="hidden lg:flex items-center gap-8">
-                    {navLinks.slice(3).map((link, index) => (
+                    {visibleNavLinks.slice(3).map((link, index) => (
                         <motion.div
                             key={link.name}
                             initial={{ opacity: 0, y: -20 }}
@@ -162,7 +201,7 @@ export default function Header({ logo, navLinks = defaultNavLinks }: HeaderProps
                         className="lg:hidden bg-white shadow-lg"
                     >
                         <nav className="container mx-auto px-6 py-4 flex flex-col gap-4">
-                            {navLinks.map((link) => (
+                            {visibleNavLinks.map((link) => (
                                 <Link
                                     key={link.name}
                                     href={link.href}

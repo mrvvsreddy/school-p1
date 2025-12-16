@@ -2,36 +2,36 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import Image from "next/image";
 
 interface NavLink {
     name: string;
     href: string;
+    visible?: boolean;
 }
 
 interface HeaderData {
-    logoTitle: string;
-    logoDescription: string;
-    logoImage: string;
-    navigationTitle: string;
+    logo: {
+        image: string;
+        text: string;
+        subtext: string;
+    };
     navLinks: NavLink[];
-    brandingNote: string;
 }
 
 const defaultData: HeaderData = {
-    logoTitle: "School Branding",
-    logoDescription: "Your school logo represents your identity and values.",
-    logoImage: "",
-    navigationTitle: "Main Navigation",
+    logo: {
+        image: "",
+        text: "BALAYEASU",
+        subtext: "SCHOOL"
+    },
     navLinks: [
-        { name: "About", href: "/about" },
-        { name: "Academics", href: "/academics" },
-        { name: "Facilities", href: "/facilities" },
-        { name: "Activities", href: "/activities" },
-        { name: "Admissions", href: "/admissions" },
-        { name: "Contact", href: "/contact" }
-    ],
-    brandingNote: "The header is the first thing visitors see. Make sure your logo is clear and navigation is intuitive."
+        { name: "About", href: "/about", visible: true },
+        { name: "Academics", href: "/academics", visible: true },
+        { name: "Facilities", href: "/facilities", visible: true },
+        { name: "Activities", href: "/activities", visible: true },
+        { name: "Admissions", href: "/admissions", visible: true },
+        { name: "Contact", href: "/contact", visible: true }
+    ]
 };
 
 export default function HeaderPreviewPage() {
@@ -42,12 +42,12 @@ export default function HeaderPreviewPage() {
             if (event.data?.type === "HEADER_PREVIEW_UPDATE" && event.data.data) {
                 const received = event.data.data;
                 setData({
-                    logoTitle: received.logoTitle || defaultData.logoTitle,
-                    logoDescription: received.logoDescription || defaultData.logoDescription,
-                    logoImage: received.logoImage || defaultData.logoImage,
-                    navigationTitle: received.navigationTitle || defaultData.navigationTitle,
-                    navLinks: received.navLinks || [],
-                    brandingNote: received.brandingNote || defaultData.brandingNote
+                    logo: {
+                        image: received.logo?.image || defaultData.logo.image,
+                        text: received.logo?.text || defaultData.logo.text,
+                        subtext: received.logo?.subtext || defaultData.logo.subtext
+                    },
+                    navLinks: received.navLinks || defaultData.navLinks
                 });
             }
         };
@@ -70,159 +70,135 @@ export default function HeaderPreviewPage() {
         };
     }, []);
 
+    // Filter visible nav links
+    const visibleNavLinks = data.navLinks.filter(link => link.visible !== false);
+
     return (
         <main className="min-h-screen bg-white">
-            {/* Hero Banner */}
-            <section className="pt-20 pb-16 bg-gradient-to-br from-[#43a047] via-[#388e3c] to-[#2e7d32] relative overflow-hidden">
-                <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-20 right-20 w-64 h-64 rounded-full bg-white/20" />
-                    <div className="absolute bottom-10 left-10 w-96 h-96 rounded-full bg-white/20" />
-                </div>
-                <div className="container mx-auto px-6 relative z-10 text-center md:text-left">
-                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4" style={{ fontFamily: "var(--font-playfair)" }}>Header Content</h1>
-                    <p className="text-white/80 text-lg max-w-2xl mx-auto md:mx-0">Customize your website header and navigation.</p>
-                </div>
-            </section>
-
-            {/* Logo Section */}
-            <section className="py-20 bg-white">
-                <div className="container mx-auto px-6">
-                    <div className="grid md:grid-cols-2 gap-12 items-start">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                            <span className="text-[#C4A35A] font-medium text-sm uppercase tracking-wider">School Logo</span>
-                            <h2 className="text-3xl md:text-4xl font-semibold text-[#333] mt-2 mb-6" style={{ fontFamily: "var(--font-playfair)" }}>
-                                {data.logoTitle}
-                            </h2>
-                            <p className="text-[#666] mb-4">{data.logoDescription}</p>
-                            <p className="text-[#666] mb-4">Upload a high-quality PNG or SVG file for best results.</p>
-                            <p className="text-[#666]">Recommended size: 200x60 pixels.</p>
-                        </motion.div>
-
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-gradient-to-br from-[#C4A35A] to-[#A38842] rounded-3xl p-8 text-white">
-                            <h3 className="text-2xl font-semibold mb-6" style={{ fontFamily: "var(--font-playfair)" }}>Logo Preview</h3>
-                            <div className="bg-white/20 rounded-2xl p-8 flex items-center justify-center min-h-[200px]">
-                                {data.logoImage ? (
-                                    <div className="relative w-full h-32">
-                                        <Image
-                                            src={data.logoImage}
-                                            alt="School Logo"
-                                            fill
-                                            className="object-contain"
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="text-center">
-                                        <div className="w-20 h-20 bg-white/30 rounded-full flex items-center justify-center mx-auto mb-3">
-                                            <span className="text-4xl">🏫</span>
-                                        </div>
-                                        <p className="text-white/70 italic">No logo uploaded</p>
-                                    </div>
-                                )}
-                            </div>
-                        </motion.div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Navigation Links */}
-            <section className="py-20 bg-[#FAF8F5]">
-                <div className="container mx-auto px-6">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl md:text-4xl font-semibold text-[#333]" style={{ fontFamily: "var(--font-playfair)" }}>
-                            {data.navigationTitle}
-                        </h2>
-                    </div>
-                    <div className="grid md:grid-cols-3 gap-8">
-                        {data.navLinks.map((link, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.1 }}
-                                className="bg-white rounded-2xl p-8 shadow-lg text-center"
-                            >
-                                <span className="text-4xl mb-4 block">🔗</span>
-                                <h3 className="text-xl font-semibold text-[#333] mb-4" style={{ fontFamily: "var(--font-playfair)" }}>
+            {/* Header - Always show desktop style */}
+            <header className="bg-gradient-to-br from-[#1976d2] via-[#1e88e5] to-[#2196f3] py-4">
+                <div className="container mx-auto px-4">
+                    <div className="flex items-center justify-between">
+                        {/* Left Navigation */}
+                        <nav className="flex items-center gap-4">
+                            {visibleNavLinks.slice(0, 3).map((link) => (
+                                <span
+                                    key={link.name}
+                                    className="text-white text-sm font-medium hover:text-white/80 cursor-pointer transition-colors"
+                                >
                                     {link.name}
-                                </h3>
-                                <p className="text-[#666] text-sm">{link.href}</p>
-                            </motion.div>
-                        ))}
-                        {data.navLinks.length === 0 && (
-                            <div className="col-span-3 text-center py-12">
-                                <p className="text-[#999] italic text-lg">No navigation links configured</p>
+                                </span>
+                            ))}
+                        </nav>
+
+                        {/* Logo */}
+                        <div className="flex flex-col items-center cursor-pointer">
+                            {data.logo.image ? (
+                                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={data.logo.image} alt="Logo" className="w-full h-full object-cover" />
+                                </div>
+                            ) : (
+                                <div className="w-12 h-12 rounded-full border-2 border-white flex items-center justify-center">
+                                    <span className="text-xl font-bold text-white" style={{ fontFamily: "var(--font-playfair)" }}>
+                                        {data.logo.text.charAt(0)}
+                                    </span>
+                                </div>
+                            )}
+                            <span className="mt-1 text-[10px] font-semibold tracking-widest text-white">
+                                {data.logo.text}
+                            </span>
+                            <span className="text-[8px] tracking-[0.15em] text-white/80">
+                                {data.logo.subtext}
+                            </span>
+                        </div>
+
+                        {/* Right Navigation */}
+                        <nav className="flex items-center gap-4">
+                            {visibleNavLinks.slice(3).map((link) => (
+                                <span
+                                    key={link.name}
+                                    className="text-white text-sm font-medium hover:text-white/80 cursor-pointer transition-colors"
+                                >
+                                    {link.name}
+                                </span>
+                            ))}
+                        </nav>
+                    </div>
+                </div>
+            </header>
+
+            {/* Hero Content */}
+            <section className="bg-gradient-to-br from-[#1976d2] via-[#1e88e5] to-[#2196f3] pb-12 pt-4 relative overflow-hidden">
+                <div className="absolute inset-0 opacity-10">
+                    <div className="absolute top-10 right-10 w-32 h-32 rounded-full bg-white/20" />
+                    <div className="absolute bottom-5 left-5 w-48 h-48 rounded-full bg-white/20" />
+                </div>
+                <div className="container mx-auto px-4 relative z-10">
+                    <motion.h1
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-3xl font-bold text-white mb-2"
+                        style={{ fontFamily: "var(--font-playfair)" }}
+                    >
+                        Sample Page Title
+                    </motion.h1>
+                    <motion.p
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="text-white/80 text-sm"
+                    >
+                        This is how your header will appear on pages.
+                    </motion.p>
+                </div>
+            </section>
+
+            {/* Navigation Info */}
+            <section className="py-6 bg-[#FAF8F5]">
+                <div className="container mx-auto px-4">
+                    <h3 className="text-lg font-semibold text-[#333] mb-4">Navigation Links</h3>
+                    <div className="flex flex-wrap gap-2">
+                        {data.navLinks.map((link, i) => (
+                            <div
+                                key={i}
+                                className={`px-3 py-1.5 border rounded-full text-sm flex items-center gap-2 ${link.visible !== false
+                                        ? 'bg-white border-gray-200 text-[#333]'
+                                        : 'bg-gray-100 border-gray-300 text-gray-400 line-through'
+                                    }`}
+                            >
+                                <span>{link.name}</span>
+                                <span className="text-xs text-gray-400">{link.href}</span>
                             </div>
-                        )}
+                        ))}
                     </div>
                 </div>
             </section>
 
-            {/* Branding Tips */}
-            <section className="py-20 bg-white">
-                <div className="container mx-auto px-6">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl md:text-4xl font-semibold text-[#333]" style={{ fontFamily: "var(--font-playfair)" }}>
-                            Branding Guidelines
-                        </h2>
-                        <p className="text-[#666] mt-4 max-w-2xl mx-auto">
-                            Tips for creating an effective header for your school website.
-                        </p>
-                    </div>
-                    <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-8">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="text-center"
-                        >
-                            <div className="w-16 h-16 mx-auto mb-4 rounded-full overflow-hidden bg-gradient-to-br from-[#C4A35A] to-[#A38842] flex items-center justify-center text-white text-2xl font-bold shadow-md">
-                                🎨
-                            </div>
-                            <h3 className="text-lg font-semibold text-[#333]">Clear Logo</h3>
-                            <p className="text-[#666] text-sm mt-1">Use a high-resolution logo</p>
-                        </motion.div>
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="text-center"
-                        >
-                            <div className="w-16 h-16 mx-auto mb-4 rounded-full overflow-hidden bg-gradient-to-br from-[#C4A35A] to-[#A38842] flex items-center justify-center text-white text-2xl font-bold shadow-md">
-                                🧭
-                            </div>
-                            <h3 className="text-lg font-semibold text-[#333]">Easy Navigation</h3>
-                            <p className="text-[#666] text-sm mt-1">Keep menu items clear</p>
-                        </motion.div>
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="text-center"
-                        >
-                            <div className="w-16 h-16 mx-auto mb-4 rounded-full overflow-hidden bg-gradient-to-br from-[#C4A35A] to-[#A38842] flex items-center justify-center text-white text-2xl font-bold shadow-md">
-                                📱
-                            </div>
-                            <h3 className="text-lg font-semibold text-[#333]">Mobile Friendly</h3>
-                            <p className="text-[#666] text-sm mt-1">Responsive on all devices</p>
-                        </motion.div>
-                    </div>
-                    <div className="mt-12 max-w-3xl mx-auto">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-[#FAF8F5] rounded-2xl p-8 border border-[#C4A35A]/30"
-                        >
-                            <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 bg-[#C4A35A] rounded-full flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
+            {/* Logo Info */}
+            <section className="py-6 bg-white border-t">
+                <div className="container mx-auto px-4">
+                    <h3 className="text-lg font-semibold text-[#333] mb-4">Logo Settings</h3>
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-xs text-gray-500 mb-1">Logo Image</p>
+                            {data.logo.image ? (
+                                <div className="w-16 h-16 rounded-full overflow-hidden border">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={data.logo.image} alt="Logo" className="w-full h-full object-cover" />
                                 </div>
-                                <div>
-                                    <h3 className="text-xl font-semibold text-[#333] mb-3" style={{ fontFamily: "var(--font-playfair)" }}>Pro Tip</h3>
-                                    <p className="text-[#666]">{data.brandingNote}</p>
-                                </div>
-                            </div>
-                        </motion.div>
+                            ) : (
+                                <p className="text-sm text-gray-400 italic">No image</p>
+                            )}
+                        </div>
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-xs text-gray-500 mb-1">Logo Text</p>
+                            <p className="text-lg font-semibold text-[#333]">{data.logo.text}</p>
+                        </div>
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-xs text-gray-500 mb-1">Subtext</p>
+                            <p className="text-lg font-semibold text-[#333]">{data.logo.subtext}</p>
+                        </div>
                     </div>
                 </div>
             </section>

@@ -9,6 +9,11 @@ interface FooterLink {
 }
 
 interface FooterData {
+    logo: {
+        image: string;
+        text: string;
+        subtext: string;
+    };
     links: {
         quickLinks: FooterLink[];
         academics: FooterLink[];
@@ -23,6 +28,11 @@ interface FooterData {
 }
 
 const defaultData: FooterData = {
+    logo: {
+        image: "",
+        text: "BALAYEASU",
+        subtext: "SCHOOL"
+    },
     links: {
         quickLinks: [],
         academics: [],
@@ -43,7 +53,9 @@ export default function FooterEditorPage() {
     const [data, setData] = useState<FooterData>(defaultData);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [openSections, setOpenSections] = useState({ links: true, contact: false, social: false });
+    const logoFileInput = useRef<HTMLInputElement>(null);
 
     // Preview state
     const [showPreview, setShowPreview] = useState(true);
@@ -70,6 +82,11 @@ export default function FooterEditorPage() {
                 const footer = content.footer || {};
 
                 setData({
+                    logo: {
+                        image: footer.logo?.image || defaultData.logo.image,
+                        text: footer.logo?.text || defaultData.logo.text,
+                        subtext: footer.logo?.subtext || defaultData.logo.subtext
+                    },
                     links: footer.links || defaultData.links,
                     contact: footer.contact || defaultData.contact,
                     socialLinks: footer.socialLinks || defaultData.socialLinks
@@ -175,6 +192,26 @@ export default function FooterEditorPage() {
     const addSocialLink = () => setData({ ...data, socialLinks: [...data.socialLinks, { name: "Facebook", href: "#" }] });
     const removeSocialLink = (i: number) => setData({ ...data, socialLinks: data.socialLinks.filter((_, idx) => idx !== i) });
 
+    const handleImageUpload = async (file: File) => {
+        setUploading(true);
+        try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const formData = new FormData();
+            formData.append("file", file);
+            const res = await fetch(`${apiUrl}/api/editor/upload`, { method: "POST", body: formData });
+            if (res.ok) {
+                const result = await res.json();
+                setData({ ...data, logo: { ...data.logo, image: result.url } });
+            } else {
+                alert("Upload failed");
+            }
+        } catch {
+            alert("Upload failed");
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const zoomIn = () => setPreviewZoom(z => Math.min(z + 10, 100));
     const zoomOut = () => setPreviewZoom(z => Math.max(z - 10, 50));
 
@@ -182,6 +219,7 @@ export default function FooterEditorPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col h-screen overflow-hidden">
+            <input type="file" accept="image/*" ref={logoFileInput} onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} className="hidden" />
             {fullscreenPreview && (
                 <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4">
                     <div className="bg-white rounded-xl w-full h-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -213,6 +251,39 @@ export default function FooterEditorPage() {
                 <div className="overflow-y-auto h-full p-8 transition-all duration-300" style={{ width: showPreview ? `${100 - previewWidth}%` : '100%', maxWidth: showPreview ? 'none' : '900px' }}>
                     <div className="max-w-3xl mx-auto space-y-8 pb-16">
                         <div className="mb-8"><label className="text-xs text-[#C4A35A] font-medium uppercase tracking-wider">Component</label><h1 className="text-2xl font-semibold text-gray-800 border-b-2 border-[#C4A35A] py-2">Footer</h1></div>
+
+                        {/* Logo Settings */}
+                        <div className="mb-4 bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                            <h3 className="font-semibold text-gray-700 mb-4">Logo Settings</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-600 mb-2">Logo Image URL</label>
+                                    <div className="flex gap-2">
+                                        <input type="text" value={data.logo.image} onChange={e => setData({ ...data, logo: { ...data.logo, image: e.target.value } })} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg" placeholder="Enter logo image URL or upload" />
+                                        <button onClick={() => logoFileInput.current?.click()} disabled={uploading} className="px-4 py-2.5 bg-[#C4A35A] text-white font-medium rounded-lg hover:bg-[#A38842] transition-colors disabled:opacity-50">{uploading ? 'Uploading...' : 'Upload'}</button>
+                                    </div>
+                                </div>
+                                {data.logo.image && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-600 mb-2">Preview</label>
+                                        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#C4A35A]">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={data.logo.image} alt="Logo" className="w-full h-full object-cover" />
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-600 mb-2">Logo Text</label>
+                                        <input type="text" value={data.logo.text} onChange={e => setData({ ...data, logo: { ...data.logo, text: e.target.value } })} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg" placeholder="e.g. BALAYEASU" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-600 mb-2">Subtext</label>
+                                        <input type="text" value={data.logo.subtext} onChange={e => setData({ ...data, logo: { ...data.logo, subtext: e.target.value } })} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg" placeholder="e.g. SCHOOL" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         {/* Footer Links */}
                         <div className="mb-4 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">

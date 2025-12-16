@@ -80,6 +80,8 @@ export default function ApplyPage() {
     const [dialCode, setDialCode] = useState("+91");
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     // Fetch page configuration from database
     useEffect(() => {
@@ -119,6 +121,8 @@ export default function ApplyPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
+        setSubmitting(true);
 
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -138,15 +142,18 @@ export default function ApplyPage() {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to submit application');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || 'Failed to submit application');
             }
 
             const result = await response.json();
             console.log("Application submitted:", result);
             setSubmitted(true);
-        } catch (error) {
-            console.error("Error submitting application:", error);
-            alert("Failed to submit application. Please try again.");
+        } catch (err) {
+            console.error("Error submitting application:", err);
+            setError(err instanceof Error ? err.message : "Failed to submit application. Please try again.");
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -319,11 +326,32 @@ export default function ApplyPage() {
                                             {renderFormField(field)}
                                         </div>
                                     ))}
+
+                                    {/* Error Message */}
+                                    {error && (
+                                        <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                                            <div className="flex items-center gap-3">
+                                                <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <p className="text-sm text-red-600">{error}</p>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <button
                                         type="submit"
-                                        className="w-full bg-gradient-to-r from-[#7b1fa2] to-[#9c27b0] text-white py-4 rounded-xl font-semibold hover:shadow-lg hover:shadow-[#7b1fa2]/30 transition-all transform hover:-translate-y-0.5"
+                                        disabled={submitting}
+                                        className="w-full bg-gradient-to-r from-[#7b1fa2] to-[#9c27b0] text-white py-4 rounded-xl font-semibold hover:shadow-lg hover:shadow-[#7b1fa2]/30 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
                                     >
-                                        {config.submitButtonText}
+                                        {submitting ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                Submitting...
+                                            </>
+                                        ) : (
+                                            config.submitButtonText
+                                        )}
                                     </button>
                                 </form>
                             </div>

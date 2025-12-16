@@ -13,13 +13,17 @@ interface NavLink {
 interface HeaderData {
     logo: {
         image: string;
+        text: string;
+        subtext: string;
     };
     navLinks: NavLink[];
 }
 
 const defaultData: HeaderData = {
     logo: {
-        image: ""
+        image: "",
+        text: "BALAYEASU",
+        subtext: "SCHOOL"
     },
     navLinks: [
         { name: "About", href: "/about", visible: true },
@@ -65,7 +69,11 @@ export default function HeaderEditorPage() {
                 const header = content.header || {};
 
                 setData({
-                    logo: header.logo || defaultData.logo,
+                    logo: {
+                        image: header.logo?.image || defaultData.logo.image,
+                        text: header.logo?.text || defaultData.logo.text,
+                        subtext: header.logo?.subtext || defaultData.logo.subtext
+                    },
                     navLinks: header.navLinks || defaultData.navLinks
                 });
             } catch (error) {
@@ -147,7 +155,7 @@ export default function HeaderEditorPage() {
             const res = await fetch(`${apiUrl}/api/editor/upload`, { method: "POST", body: formData });
             if (res.ok) {
                 const result = await res.json();
-                setData({ ...data, logo: { image: result.url } });
+                setData({ ...data, logo: { ...data.logo, image: result.url } });
             } else {
                 alert("Upload failed");
             }
@@ -210,23 +218,33 @@ export default function HeaderEditorPage() {
 
                         {/* Logo Section */}
                         <div className="mb-4 bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                            <h3 className="font-semibold text-gray-700 mb-4">Logo Image</h3>
+                            <h3 className="font-semibold text-gray-700 mb-4">Logo Settings</h3>
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-600 mb-2">Logo Image URL</label>
                                     <div className="flex gap-2">
-                                        <input type="text" value={data.logo.image} onChange={e => setData({ ...data, logo: { image: e.target.value } })} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg" placeholder="Enter image URL or upload" />
+                                        <input type="text" value={data.logo.image} onChange={e => setData({ ...data, logo: { ...data.logo, image: e.target.value } })} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg" placeholder="Enter image URL or upload" />
                                         <button onClick={() => logoFileInput.current?.click()} disabled={uploading} className="px-4 py-2.5 bg-[#C4A35A] text-white font-medium rounded-lg hover:bg-[#A38842] transition-colors disabled:opacity-50">{uploading ? 'Uploading...' : 'Upload'}</button>
                                     </div>
                                 </div>
                                 {data.logo.image && (
                                     <div className="mt-4">
-                                        <label className="block text-sm font-medium text-gray-600 mb-2">Editor Preview (Actual size in Live Preview)</label>
+                                        <label className="block text-sm font-medium text-gray-600 mb-2">Preview</label>
                                         <div className="relative h-24 w-48 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                                             <Image src={data.logo.image} alt="Logo" fill style={{ objectFit: 'contain' }} className="p-2" />
                                         </div>
                                     </div>
                                 )}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-600 mb-2">Logo Text</label>
+                                        <input type="text" value={data.logo.text} onChange={e => setData({ ...data, logo: { ...data.logo, text: e.target.value } })} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg" placeholder="e.g. BALAYEASU" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-600 mb-2">Subtext</label>
+                                        <input type="text" value={data.logo.subtext} onChange={e => setData({ ...data, logo: { ...data.logo, subtext: e.target.value } })} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg" placeholder="e.g. SCHOOL" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
