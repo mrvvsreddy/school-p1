@@ -56,16 +56,18 @@ const FacilityCard = ({ facility, index }: { facility: Facility; index: number }
                 </p>
 
                 {/* Features Tags */}
-                <div className="flex flex-wrap gap-2">
-                    {facility.features.map((feature) => (
-                        <span
-                            key={feature}
-                            className="px-3 py-1 bg-[#C4A35A]/10 text-[#C4A35A] text-xs font-medium rounded-full border border-[#C4A35A]/20"
-                        >
-                            {feature}
-                        </span>
-                    ))}
-                </div>
+                {facility.features && facility.features.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                        {facility.features.map((feature, idx) => (
+                            <span
+                                key={`${feature}-${idx}`}
+                                className="px-3 py-1 bg-[#C4A35A]/10 text-[#C4A35A] text-xs font-medium rounded-full border border-[#C4A35A]/20"
+                            >
+                                {feature}
+                            </span>
+                        ))}
+                    </div>
+                )}
             </div>
         </motion.div>
     );
@@ -104,10 +106,9 @@ export default function Facilities({ data }: FacilitiesProps) {
                     </p>
                 </motion.div>
 
-                {/* Facilities Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {data.list.map((facility, index) => (
-                        <FacilityCard key={facility.id} facility={facility} index={index} />
+                        <FacilityCard key={facility.id || `facility-${index}`} facility={facility} index={index} />
                     ))}
                 </div>
 

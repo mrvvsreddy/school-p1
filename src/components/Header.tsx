@@ -4,7 +4,18 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
-const navLinks = [
+// Define props interface
+interface HeaderProps {
+    logo?: {
+        image: string;
+    };
+    navLinks?: {
+        name: string;
+        href: string;
+    }[];
+}
+
+const defaultNavLinks = [
     { name: "About", href: "/about" },
     { name: "Academics", href: "/academics" },
     { name: "Facilities", href: "/facilities" },
@@ -13,7 +24,7 @@ const navLinks = [
     { name: "Contact", href: "/contact" },
 ];
 
-export default function Header() {
+export default function Header({ logo, navLinks = defaultNavLinks }: HeaderProps) {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -32,8 +43,8 @@ export default function Header() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
             className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-                    ? "bg-white/95 backdrop-blur-md shadow-lg py-3"
-                    : "bg-transparent py-5"
+                ? "bg-white/95 backdrop-blur-md shadow-lg py-3"
+                : "bg-transparent py-5"
                 }`}
         >
             <div className="container mx-auto px-6 flex items-center justify-between">
@@ -65,32 +76,43 @@ export default function Header() {
                     className="flex items-center justify-center"
                 >
                     <Link href="/" className="flex flex-col items-center">
-                        <div
-                            className={`relative w-16 h-16 rounded-full border-2 ${isScrolled ? "border-[#333]" : "border-white"
-                                } flex items-center justify-center`}
-                        >
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <span
-                                    className={`text-2xl font-bold ${isScrolled ? "text-[#333]" : "text-white"
-                                        }`}
-                                    style={{ fontFamily: "var(--font-playfair)" }}
-                                >
-                                    B
-                                </span>
+                        {logo?.image ? (
+                            <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={logo.image} alt="School Logo" className="w-full h-full object-cover" />
                             </div>
-                        </div>
-                        <span
-                            className={`mt-1 text-xs font-semibold tracking-widest ${isScrolled ? "text-[#333]" : "text-white"
-                                }`}
-                        >
-                            BALAYEASU
-                        </span>
-                        <span
-                            className={`text-[8px] tracking-[0.2em] ${isScrolled ? "text-[#666]" : "text-white/80"
-                                }`}
-                        >
-                            SCHOOL
-                        </span>
+                        ) : (
+                            <div
+                                className={`relative w-16 h-16 rounded-full border-2 ${isScrolled ? "border-[#333]" : "border-white"
+                                    } flex items-center justify-center`}
+                            >
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <span
+                                        className={`text-2xl font-bold ${isScrolled ? "text-[#333]" : "text-white"
+                                            }`}
+                                        style={{ fontFamily: "var(--font-playfair)" }}
+                                    >
+                                        B
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                        {!logo?.image && (
+                            <>
+                                <span
+                                    className={`mt-1 text-xs font-semibold tracking-widest ${isScrolled ? "text-[#333]" : "text-white"
+                                        }`}
+                                >
+                                    BALAYEASU
+                                </span>
+                                <span
+                                    className={`text-[8px] tracking-[0.2em] ${isScrolled ? "text-[#666]" : "text-white/80"
+                                        }`}
+                                >
+                                    SCHOOL
+                                </span>
+                            </>
+                        )}
                     </Link>
                 </motion.div>
 

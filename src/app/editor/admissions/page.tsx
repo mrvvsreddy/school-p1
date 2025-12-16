@@ -21,6 +21,7 @@ interface AdmissionsData {
     process: AdmissionStep[];
     documents: string[];
     feeStructure: Fee[];
+    feeNote: string;
 }
 
 const defaultData: AdmissionsData = {
@@ -32,7 +33,8 @@ const defaultData: AdmissionsData = {
     ],
     feeStructure: [
         { class: "Class 1-5", admission: "₹15,000", tuition: "₹3,500/month" }
-    ]
+    ],
+    feeNote: "* Additional charges for transport, books, and uniform apply."
 };
 
 export default function AdmissionsEditorPage() {
@@ -51,9 +53,23 @@ export default function AdmissionsEditorPage() {
         fetch(`${apiUrl}/api/pages/admissions`)
             .then((res) => res.json())
             .then((content) => {
-                if (content.admissions) {
-                    setData(content.admissions);
-                }
+                // API returns: { process: { steps: [...] }, requirements: { documents: [...] }, fees: { structure: [...] } }
+                const processData = content.process || {};
+                const requirementsData = content.requirements || {};
+                const feesData = content.fees || {};
+
+                // Extract arrays from nested structure
+                const steps = Array.isArray(processData) ? processData : (processData.steps || []);
+                const docs = Array.isArray(requirementsData) ? requirementsData : (requirementsData.documents || []);
+                const fees = Array.isArray(feesData) ? feesData : (feesData.structure || []);
+
+                const loadedData: AdmissionsData = {
+                    process: steps.length > 0 ? steps : defaultData.process,
+                    documents: docs.length > 0 ? docs : defaultData.documents,
+                    feeStructure: fees.length > 0 ? fees : defaultData.feeStructure,
+                    feeNote: feesData.note || defaultData.feeNote
+                };
+                setData(loadedData);
                 setLoading(false);
             })
             .catch((err) => {
@@ -90,10 +106,17 @@ export default function AdmissionsEditorPage() {
         setSaving(true);
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            // Save in the same format as the database structure
             const res = await fetch(`${apiUrl}/api/pages/admissions/batch`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ sections: { admissions: data } }),
+                body: JSON.stringify({
+                    sections: {
+                        process: { steps: data.process },
+                        requirements: { documents: data.documents },
+                        fees: { structure: data.feeStructure, note: data.feeNote }
+                    }
+                }),
             });
             if (!res.ok) throw new Error("Failed to save");
             alert("Changes published successfully!");
@@ -268,9 +291,12 @@ export default function AdmissionsEditorPage() {
                                         />
                                         <button
                                             onClick={() => removeDocument(i)}
-                                            className="text-gray-300 hover:text-red-500 transition-colors px-2"
+                                            className="p-2 text-red-400 hover:text-red-600 transition-colors"
+                                            title="Remove document"
                                         >
-                                            ✕
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
                                         </button>
                                     </div>
                                 ))}
@@ -326,6 +352,18 @@ export default function AdmissionsEditorPage() {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+
+                            {/* Fee Note Section */}
+                            <div className="mt-6 pt-4 border-t border-gray-200">
+                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Additional Note</label>
+                                <input
+                                    type="text"
+                                    value={data.feeNote || ""}
+                                    onChange={(e) => setData({ ...data, feeNote: e.target.value })}
+                                    placeholder="e.g., * Additional charges for transport, books, and uniform apply."
+                                    className="w-full px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 focus:border-[#43a047] focus:ring-2 focus:ring-[#43a047]/20 outline-none transition-all text-sm"
+                                />
                             </div>
                         </section>
 

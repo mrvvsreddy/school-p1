@@ -2,9 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import Link from "next/link";
 import PhoneInput from "@/components/PhoneInput";
 
 interface Document {
@@ -28,7 +25,7 @@ interface FormField {
     defaultDialCode?: string;
 }
 
-interface PageConfig {
+interface ApplicationData {
     pageTitle: string;
     pageSubtitle: string;
     formFields: FormField[];
@@ -36,10 +33,9 @@ interface PageConfig {
     classOptions: ClassOption[];
     submitButtonText: string;
     importantNote: string;
-    successMessage: string;
 }
 
-const defaultConfig: PageConfig = {
+const defaultData: ApplicationData = {
     pageTitle: "Apply Now",
     pageSubtitle: "Complete the form below to start your admission journey.",
     formFields: [
@@ -70,84 +66,49 @@ const defaultConfig: PageConfig = {
         { value: "10", label: "Class 10" },
     ],
     submitButtonText: "Submit Application",
-    importantNote: "All documents should be submitted in original along with one photocopy during the admission process.",
-    successMessage: "Thank you for your application. Our admissions team will contact you within 2-3 business days."
+    importantNote: "All documents should be submitted in original along with one photocopy during the admission process."
 };
 
-export default function ApplyPage() {
-    const [config, setConfig] = useState<PageConfig>(defaultConfig);
+export default function ApplicationPreviewPage() {
+    const [data, setData] = useState<ApplicationData>(defaultData);
     const [formValues, setFormValues] = useState<Record<string, string>>({});
-    const [dialCode, setDialCode] = useState("+91");
-    const [submitted, setSubmitted] = useState(false);
-    const [loading, setLoading] = useState(true);
 
-    // Fetch page configuration from database
     useEffect(() => {
-        const fetchConfig = async () => {
-            try {
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-                const res = await fetch(`${apiUrl}/api/pages/admissions`);
-                const json = await res.json();
-                const formData = json.application_form || {};
-                setConfig({
-                    pageTitle: formData.pageTitle || defaultConfig.pageTitle,
-                    pageSubtitle: formData.pageSubtitle || defaultConfig.pageSubtitle,
-                    formFields: formData.formFields || defaultConfig.formFields,
-                    documents: formData.documents || defaultConfig.documents,
-                    classOptions: formData.classOptions || defaultConfig.classOptions,
-                    submitButtonText: formData.submitButtonText || defaultConfig.submitButtonText,
-                    importantNote: formData.importantNote || defaultConfig.importantNote,
-                    successMessage: formData.successMessage || defaultConfig.successMessage
+        const handleMessage = (event: MessageEvent) => {
+            if (event.data?.type === "APPLICATION_PREVIEW_UPDATE" && event.data.data) {
+                const received = event.data.data;
+                setData({
+                    pageTitle: received.pageTitle || defaultData.pageTitle,
+                    pageSubtitle: received.pageSubtitle || defaultData.pageSubtitle,
+                    formFields: received.formFields || defaultData.formFields,
+                    documents: received.documents || defaultData.documents,
+                    classOptions: received.classOptions || defaultData.classOptions,
+                    submitButtonText: received.submitButtonText || defaultData.submitButtonText,
+                    importantNote: received.importantNote || defaultData.importantNote
                 });
-            } catch (error) {
-                console.error("Failed to load page config:", error);
-            } finally {
-                setLoading(false);
             }
         };
-        fetchConfig();
+        window.addEventListener("message", handleMessage);
+        window.parent.postMessage({ type: "REQUEST_APPLICATION_DATA" }, "*");
+
+        // Report height update
+        const heightUpdateInterval = setInterval(() => {
+            if (document.body) {
+                window.parent.postMessage({
+                    type: "PREVIEW_HEIGHT_UPDATE",
+                    height: document.body.scrollHeight
+                }, "*");
+            }
+        }, 500);
+
+        return () => {
+            window.removeEventListener("message", handleMessage);
+            clearInterval(heightUpdateInterval);
+        };
     }, []);
 
     const handleFieldChange = (fieldName: string, value: string) => {
         setFormValues({ ...formValues, [fieldName]: value });
-    };
-
-    const handlePhoneChange = (phone: string, code: string) => {
-        setFormValues({ ...formValues, phone });
-        setDialCode(code);
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-            const response = await fetch(`${apiUrl}/api/admin/admissions/apply`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    student_name: formValues.studentName || "",
-                    parent_name: formValues.parentName || "",
-                    email: formValues.email || "",
-                    dial_code: dialCode,
-                    phone: formValues.phone || "",
-                    class_applying: formValues.classApplying || "",
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to submit application');
-            }
-
-            const result = await response.json();
-            console.log("Application submitted:", result);
-            setSubmitted(true);
-        } catch (error) {
-            console.error("Error submitting application:", error);
-            alert("Failed to submit application. Please try again.");
-        }
     };
 
     const renderFormField = (field: FormField) => {
@@ -158,9 +119,8 @@ export default function ApplyPage() {
                 return (
                     <PhoneInput
                         value={value}
-                        onChange={handlePhoneChange}
+                        onChange={(phone) => handleFieldChange(field.name, phone)}
                         placeholder={field.placeholder}
-                        required={field.required}
                         defaultDialCode={field.defaultDialCode || "+91"}
                     />
                 );
@@ -170,11 +130,10 @@ export default function ApplyPage() {
                         name={field.name}
                         value={value}
                         onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                        required={field.required}
                         className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7b1fa2] focus:ring-2 focus:ring-[#7b1fa2]/20 outline-none transition-all bg-white"
                     >
                         <option value="">{field.placeholder}</option>
-                        {config.classOptions.map((opt) => (
+                        {data.classOptions.map((opt) => (
                             <option key={opt.value} value={opt.value}>
                                 {opt.label}
                             </option>
@@ -187,7 +146,6 @@ export default function ApplyPage() {
                         name={field.name}
                         value={value}
                         onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                        required={field.required}
                         className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7b1fa2] focus:ring-2 focus:ring-[#7b1fa2]/20 outline-none transition-all resize-none"
                         placeholder={field.placeholder}
                         rows={4}
@@ -202,7 +160,6 @@ export default function ApplyPage() {
                         name={field.name}
                         value={value}
                         onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                        required={field.required}
                         className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7b1fa2] focus:ring-2 focus:ring-[#7b1fa2]/20 outline-none transition-all"
                         placeholder={field.placeholder}
                     />
@@ -210,59 +167,8 @@ export default function ApplyPage() {
         }
     };
 
-    if (submitted) {
-        return (
-            <main className="min-h-screen">
-                <Header />
-                <section className="pt-32 pb-20 min-h-[80vh] flex items-center justify-center bg-gradient-to-br from-[#FAF8F5] to-white">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-3xl p-12 shadow-2xl text-center max-w-md mx-auto"
-                    >
-                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <svg className="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-                        <h2 className="text-2xl font-bold text-[#333] mb-4" style={{ fontFamily: "var(--font-playfair)" }}>
-                            Application Submitted!
-                        </h2>
-                        <p className="text-[#666] mb-8">
-                            {config.successMessage}
-                        </p>
-                        <Link
-                            href="/admissions"
-                            className="inline-block bg-[#7b1fa2] text-white px-8 py-3 rounded-full font-semibold hover:bg-[#6a1b9a] transition-colors"
-                        >
-                            Back to Admissions
-                        </Link>
-                    </motion.div>
-                </section>
-                <Footer />
-            </main>
-        );
-    }
-
-    if (loading) {
-        return (
-            <main className="min-h-screen">
-                <Header />
-                <section className="pt-32 pb-20 min-h-[80vh] flex items-center justify-center">
-                    <div className="text-center">
-                        <div className="w-12 h-12 border-4 border-[#7b1fa2]/30 border-t-[#7b1fa2] rounded-full animate-spin mx-auto mb-4" />
-                        <p className="text-gray-500">Loading...</p>
-                    </div>
-                </section>
-                <Footer />
-            </main>
-        );
-    }
-
     return (
-        <main className="min-h-screen">
-            <Header />
-
+        <main className="min-h-screen bg-white">
             {/* Hero Banner */}
             <section className="pt-32 pb-12 bg-gradient-to-br from-[#7b1fa2] via-[#8e24aa] to-[#9c27b0] relative overflow-hidden">
                 <div className="absolute inset-0 opacity-10">
@@ -270,28 +176,12 @@ export default function ApplyPage() {
                     <div className="absolute bottom-10 left-10 w-96 h-96 rounded-full bg-white/20" />
                 </div>
                 <div className="container mx-auto px-6 relative z-10">
-                    <Link href="/admissions" className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-4 transition-colors">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                        Back to Admissions
-                    </Link>
-                    <motion.h1
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-4xl md:text-5xl font-bold text-white mb-4"
-                        style={{ fontFamily: "var(--font-playfair)" }}
-                    >
-                        {config.pageTitle}
-                    </motion.h1>
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="text-white/80 text-lg max-w-2xl"
-                    >
-                        {config.pageSubtitle}
-                    </motion.p>
+                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4" style={{ fontFamily: "var(--font-playfair)" }}>
+                        {data.pageTitle}
+                    </h1>
+                    <p className="text-white/80 text-lg max-w-2xl">
+                        {data.pageSubtitle}
+                    </p>
                 </div>
             </section>
 
@@ -310,8 +200,8 @@ export default function ApplyPage() {
                                 <h2 className="text-2xl font-semibold text-[#333] mb-6" style={{ fontFamily: "var(--font-playfair)" }}>
                                     Application Form
                                 </h2>
-                                <form onSubmit={handleSubmit} className="space-y-5">
-                                    {config.formFields.map((field) => (
+                                <form className="space-y-5">
+                                    {data.formFields.map((field) => (
                                         <div key={field.id}>
                                             <label className="block text-sm font-medium text-[#333] mb-2">
                                                 {field.label} {field.required && "*"}
@@ -320,10 +210,10 @@ export default function ApplyPage() {
                                         </div>
                                     ))}
                                     <button
-                                        type="submit"
+                                        type="button"
                                         className="w-full bg-gradient-to-r from-[#7b1fa2] to-[#9c27b0] text-white py-4 rounded-xl font-semibold hover:shadow-lg hover:shadow-[#7b1fa2]/30 transition-all transform hover:-translate-y-0.5"
                                     >
-                                        {config.submitButtonText}
+                                        {data.submitButtonText}
                                     </button>
                                 </form>
                             </div>
@@ -343,7 +233,7 @@ export default function ApplyPage() {
                                     Please keep the following documents ready for submission:
                                 </p>
                                 <ul className="space-y-4">
-                                    {config.documents.map((doc) => (
+                                    {data.documents.map((doc) => (
                                         <li key={doc.id} className="flex items-start gap-3">
                                             <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${doc.required ? 'bg-[#C4A35A]' : 'bg-gray-300'}`}>
                                                 <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -373,7 +263,7 @@ export default function ApplyPage() {
                                         <div>
                                             <h4 className="font-semibold text-[#333] mb-1">Important Note</h4>
                                             <p className="text-sm text-[#666]">
-                                                {config.importantNote}
+                                                {data.importantNote}
                                             </p>
                                         </div>
                                     </div>
@@ -383,8 +273,6 @@ export default function ApplyPage() {
                     </div>
                 </div>
             </section>
-
-            <Footer />
         </main>
     );
 }

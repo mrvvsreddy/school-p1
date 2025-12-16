@@ -16,11 +16,14 @@ export default function AcademicsPage() {
         fetch(`${apiUrl}/api/pages/academics`)
             .then((res) => res.json())
             .then((data) => {
-                // Map the new API structure to the expected AcademicsData shape
+                // Handle both API structures:
+                // 1. data.academics (from editor which saves as { academics: {...} })
+                // 2. data.grades.list (legacy structure)
+                const academicsData = data.academics || data;
                 const mappedData = {
-                    grades: data.grades?.list || [],
-                    calendar: data.calendar?.list || [],
-                    methodologies: data.methodologies?.list || []
+                    grades: academicsData.grades?.list || academicsData.grades || [],
+                    calendar: academicsData.calendar?.list || academicsData.calendar || [],
+                    methodologies: academicsData.methodologies?.list || academicsData.methodologies || []
                 };
                 setAcademics(mappedData);
                 setLoading(false);
@@ -163,20 +166,29 @@ export default function AcademicsPage() {
                             Academic Calendar 2024-25
                         </h2>
                         <div className="grid md:grid-cols-2 gap-6">
-                            {academics.calendar.map((term) => (
+                            {academics.calendar.map((term, index) => (
                                 <motion.div
-                                    key={term.term}
+                                    key={term.title || term.term || index}
                                     initial={{ opacity: 0, y: 20 }}
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     className="bg-[#FAF8F5] rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow"
                                 >
                                     <h3 className="text-xl font-semibold text-[#333] mb-4" style={{ fontFamily: "var(--font-playfair)" }}>
-                                        {term.term}
+                                        {term.title || term.term}
                                     </h3>
                                     <div className="space-y-2 text-[#666]">
-                                        <p><span className="font-medium text-[#333]">Duration:</span> {term.dates}</p>
-                                        <p><span className="font-medium text-[#333]">Examinations:</span> {term.exams}</p>
+                                        {/* Handle dynamic fields */}
+                                        {term.fields && term.fields.map((field: { label: string; value: string }, fi: number) => (
+                                            <p key={fi}><span className="font-medium text-[#333]">{field.label}:</span> {field.value}</p>
+                                        ))}
+                                        {/* Fallback for old format */}
+                                        {!term.fields && term.dates && (
+                                            <p><span className="font-medium text-[#333]">Duration:</span> {term.dates}</p>
+                                        )}
+                                        {!term.fields && term.exams && (
+                                            <p><span className="font-medium text-[#333]">Examinations:</span> {term.exams}</p>
+                                        )}
                                     </div>
                                 </motion.div>
                             ))}

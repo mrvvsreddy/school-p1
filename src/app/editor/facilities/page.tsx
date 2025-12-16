@@ -58,7 +58,18 @@ export default function FacilitiesEditorPage() {
             .then((res) => res.json())
             .then((content) => {
                 if (content.facilities) {
-                    setData(content.facilities);
+                    // Ensure all facilities have features array
+                    const loadedData = content.facilities;
+                    if (loadedData.facilities) {
+                        loadedData.facilities = loadedData.facilities.map((f: Facility) => ({
+                            ...f,
+                            features: f.features || []
+                        }));
+                    }
+                    if (loadedData.additional) {
+                        loadedData.additional = loadedData.additional || [];
+                    }
+                    setData(loadedData);
                 }
                 setLoading(false);
             })
@@ -157,6 +168,24 @@ export default function FacilitiesEditorPage() {
     const updateFacilityFeatures = (index: number, featuresString: string) => {
         const features = featuresString.split(",").map(f => f.trim()).filter(f => f);
         updateFacility(index, "features", features);
+    };
+
+    const addFacilityFeature = (facilityIndex: number) => {
+        const newFacilities = [...data.facilities];
+        newFacilities[facilityIndex].features = [...(newFacilities[facilityIndex].features || []), "New Feature"];
+        setData({ ...data, facilities: newFacilities });
+    };
+
+    const updateSingleFeature = (facilityIndex: number, featureIndex: number, value: string) => {
+        const newFacilities = [...data.facilities];
+        newFacilities[facilityIndex].features[featureIndex] = value;
+        setData({ ...data, facilities: newFacilities });
+    };
+
+    const removeFacilityFeature = (facilityIndex: number, featureIndex: number) => {
+        const newFacilities = [...data.facilities];
+        newFacilities[facilityIndex].features = newFacilities[facilityIndex].features.filter((_, i) => i !== featureIndex);
+        setData({ ...data, facilities: newFacilities });
     };
 
     const updateAdditional = (index: number, field: keyof AdditionalFacility, value: string) => {
@@ -258,13 +287,30 @@ export default function FacilitiesEditorPage() {
                                         </div>
 
                                         <div className="mb-4">
-                                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Features (comma separated)</label>
-                                            <input
-                                                type="text"
-                                                value={facility.features.join(", ")}
-                                                onChange={(e) => updateFacilityFeatures(i, e.target.value)}
-                                                className="w-full px-3 py-2 bg-white rounded-lg border border-gray-200 focus:border-[#43a047] focus:ring-2 focus:ring-[#43a047]/20 outline-none transition-all"
-                                            />
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Features</label>
+                                                <button onClick={() => addFacilityFeature(i)} className="text-xs px-2 py-1 bg-[#43a047]/10 text-[#43a047] rounded font-medium hover:bg-[#43a047]/20 transition-colors">
+                                                    + Add Feature
+                                                </button>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {(facility.features || []).map((feature, fi) => (
+                                                    <div key={fi} className="flex items-center gap-1 bg-[#43a047]/10 rounded-full pl-3 pr-1 py-1">
+                                                        <input
+                                                            type="text"
+                                                            value={feature}
+                                                            onChange={(e) => updateSingleFeature(i, fi, e.target.value)}
+                                                            className="bg-transparent text-sm text-[#43a047] font-medium outline-none w-24 min-w-0"
+                                                        />
+                                                        <button onClick={() => removeFacilityFeature(i, fi)} className="p-1 text-red-400 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors">
+                                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                {(!facility.features || facility.features.length === 0) && (
+                                                    <span className="text-gray-400 text-sm italic">No features added yet</span>
+                                                )}
+                                            </div>
                                         </div>
 
                                         <div>

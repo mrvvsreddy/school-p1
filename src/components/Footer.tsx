@@ -49,10 +49,19 @@ interface FooterData {
     socialLinks: FooterLink[];
 }
 
-export default function Footer() {
-    const [data, setData] = React.useState<FooterData | null>(null);
+interface FooterProps {
+    initialData?: FooterData | null;
+}
+
+export default function Footer({ initialData = null }: FooterProps) {
+    const [data, setData] = React.useState<FooterData | null>(initialData);
 
     React.useEffect(() => {
+        if (initialData) {
+            setData(initialData);
+            return;
+        }
+
         const fetchFooterData = async () => {
             try {
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -67,7 +76,7 @@ export default function Footer() {
         };
 
         fetchFooterData();
-    }, []);
+    }, [initialData]);
 
     if (!data) return null;
 

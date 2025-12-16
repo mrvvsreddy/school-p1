@@ -19,6 +19,7 @@ interface AdmissionsData {
     process: AdmissionStep[];
     documents: string[];
     feeStructure: Fee[];
+    feeNote: string;
 }
 
 const defaultData: AdmissionsData = {
@@ -32,7 +33,8 @@ const defaultData: AdmissionsData = {
     ],
     feeStructure: [
         { class: "Class 1-5", admission: "₹15,000", tuition: "₹3,500/month" }
-    ]
+    ],
+    feeNote: "* Additional charges for transport, books, and uniform apply."
 };
 
 export default function AdmissionsPreviewPage() {
@@ -45,7 +47,8 @@ export default function AdmissionsPreviewPage() {
                 setData({
                     process: received.process || defaultData.process,
                     documents: received.documents || defaultData.documents,
-                    feeStructure: received.feeStructure || defaultData.feeStructure
+                    feeStructure: received.feeStructure || defaultData.feeStructure,
+                    feeNote: received.feeNote !== undefined ? received.feeNote : defaultData.feeNote
                 });
             }
         };
@@ -167,7 +170,7 @@ export default function AdmissionsPreviewPage() {
                                 </tbody>
                             </table>
                         </div>
-                        <p className="text-[#666] text-sm mt-4 text-center">* Additional charges for transport, books, and uniform apply.</p>
+                        <p className="text-[#666] text-sm mt-4 text-center">{data.feeNote}</p>
                     </div>
                 </div>
             </section>

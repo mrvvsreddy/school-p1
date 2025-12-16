@@ -18,10 +18,14 @@ interface Methodology {
     icon: string;
 }
 
+interface CalendarField {
+    label: string;
+    value: string;
+}
+
 interface CalendarTerm {
-    term: string;
-    dates: string;
-    exams: string;
+    title: string;
+    fields: CalendarField[];
 }
 
 interface AcademicsData {
@@ -45,7 +49,13 @@ const defaultData: AcademicsData = {
         { name: "Experiential Learning", icon: "🧠" }
     ],
     calendar: [
-        { term: "Term 1", dates: "April - September", exams: "September" }
+        {
+            title: "Term 1",
+            fields: [
+                { label: "Duration", value: "April - September" },
+                { label: "Examinations", value: "September" }
+            ]
+        }
     ]
 };
 
@@ -186,11 +196,12 @@ export default function AcademicsPreviewPage() {
                                     className="bg-[#FAF8F5] rounded-xl p-6 shadow-md"
                                 >
                                     <h3 className="text-xl font-semibold text-[#333] mb-4" style={{ fontFamily: "var(--font-playfair)" }}>
-                                        {term.term}
+                                        {term.title}
                                     </h3>
                                     <div className="space-y-2 text-[#666]">
-                                        <p><span className="font-medium text-[#333]">Duration:</span> {term.dates}</p>
-                                        <p><span className="font-medium text-[#333]">Examinations:</span> {term.exams}</p>
+                                        {term.fields && term.fields.map((field, fi) => (
+                                            <p key={fi}><span className="font-medium text-[#333]">{field.label}:</span> {field.value}</p>
+                                        ))}
                                     </div>
                                 </motion.div>
                             ))}

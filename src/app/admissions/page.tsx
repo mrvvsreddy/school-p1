@@ -49,6 +49,7 @@ export default function AdmissionsPage() {
     const [admissionSteps, setAdmissionSteps] = React.useState<AdmissionStep[]>([]);
     const [documents, setDocuments] = React.useState<string[]>([]);
     const [feeStructure, setFeeStructure] = React.useState<FeeStructure[]>([]);
+    const [feeNote, setFeeNote] = React.useState<string>("* Additional charges for transport, books, and uniform apply.");
 
     React.useEffect(() => {
         const fetchData = async () => {
@@ -56,9 +57,23 @@ export default function AdmissionsPage() {
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
                 const res = await fetch(`${apiUrl}/api/pages/admissions`);
                 const json = await res.json();
-                setAdmissionSteps(json.process?.steps || []);
-                setDocuments(json.requirements?.documents || []);
-                setFeeStructure(json.fees?.structure || []);
+
+                // Handle nested data structure from API
+                // API returns: { process: { steps: [...] }, requirements: { documents: [...] }, fees: { structure: [...] } }
+                const processData = json.process || {};
+                const requirementsData = json.requirements || {};
+                const feesData = json.fees || {};
+
+                // Extract steps array - could be in steps property or as direct array
+                const steps = Array.isArray(processData) ? processData : (processData.steps || []);
+                const docs = Array.isArray(requirementsData) ? requirementsData : (requirementsData.documents || []);
+                const fees = Array.isArray(feesData) ? feesData : (feesData.structure || []);
+
+                setAdmissionSteps(steps);
+                setDocuments(docs);
+                setFeeStructure(fees);
+                // Set fee note - use database value if it exists, otherwise keep default
+                if (feesData.note !== undefined) setFeeNote(feesData.note);
             } catch (error) {
                 console.error("Failed to load admissions data:", error);
             }
@@ -170,7 +185,7 @@ export default function AdmissionsPage() {
                                 </tbody>
                             </table>
                         </div>
-                        <p className="text-[#666] text-sm mt-4 text-center">* Additional charges for transport, books, and uniform apply.</p>
+                        <p className="text-[#666] text-sm mt-4 text-center">{feeNote}</p>
                     </div>
                 </div>
             </section>

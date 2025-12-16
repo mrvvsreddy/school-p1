@@ -8,7 +8,7 @@ import Image from "next/image";
 interface HeroButton { id: number; text: string; url: string; color: string; visible: boolean; }
 interface HeroSlide { id: number; title: string; subtitle: string; image: string; mediaType?: 'image' | 'video'; }
 interface Stat { number: string; label: string; }
-interface Facility { title: string; description: string; image: string; }
+interface Facility { id?: number; title: string; description: string; image: string; features?: string[]; }
 interface PlaygroundFeature { icon: string; text: string; }
 interface PlaygroundData { title: string; description: string; features: PlaygroundFeature[]; image: string; buttonText: string; buttonUrl: string; }
 
@@ -223,7 +223,7 @@ export default function HomeEditorPage() {
 
     // Facilities functions
     const updateFacility = (i: number, f: keyof Facility, v: string) => { const l = [...data.facilities.list]; l[i] = { ...l[i], [f]: v }; setData({ ...data, facilities: { list: l } }); };
-    const addFacility = () => setData({ ...data, facilities: { list: [...data.facilities.list, { title: "New Facility", description: "", image: "" }] } });
+    const addFacility = () => setData({ ...data, facilities: { list: [...data.facilities.list, { id: Date.now(), title: "New Facility", description: "", image: "", features: [] }] } });
     const removeFacility = (i: number) => setData({ ...data, facilities: { list: data.facilities.list.filter((_, idx) => idx !== i) } });
 
     // Playground functions

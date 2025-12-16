@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 // Types
 interface HeroSlide { id: number; title: string; subtitle: string; image: string; }
@@ -64,8 +66,11 @@ export default function HomePreviewPage() {
     const visibleButtons = data.hero.buttons.filter(btn => btn.visible);
     const defaultStats = [{ number: "25+", label: "Years" }, { number: "1500+", label: "Students" }, { number: "80+", label: "Teachers" }, { number: "100%", label: "Pass Rate" }];
 
+
     return (
         <div className="min-h-screen bg-white">
+            <Header />
+
             {/* HERO SECTION */}
             <section className="relative h-[70vh] min-h-[400px] overflow-hidden bg-[#1a1a1a]">
                 {data.hero.slides.map((slide, index) => (
@@ -175,6 +180,7 @@ export default function HomePreviewPage() {
                 </section>
             )}
 
+            <Footer />
         </div>
     );
 }

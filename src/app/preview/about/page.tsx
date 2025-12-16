@@ -188,7 +188,7 @@ export default function AboutPreviewPage() {
                             >
                                 <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden bg-gradient-to-br from-[#C4A35A] to-[#A38842] flex items-center justify-center text-white text-3xl font-bold shadow-md">
                                     {leader.image ? (
-                                        <Image src={leader.image} alt={leader.name} className="w-full h-full object-cover" fill style={{ objectFit: 'cover' }} />
+                                        <img src={leader.image} alt={leader.name} className="w-full h-full object-cover" />
                                     ) : (
                                         (leader.name || "A").split(' ').map(n => n[0]).join('').slice(0, 2)
                                     )}

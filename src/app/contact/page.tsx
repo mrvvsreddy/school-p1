@@ -36,8 +36,27 @@ export default function ContactPage() {
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
                 const res = await fetch(`${apiUrl}/api/pages/contact`);
                 const json = await res.json();
-                if (json && json.info) {
-                    setContactInfo(json.info);
+
+                // Handle both data structures:
+                // 1. json.contact (from editor which saves as { contact: { contactInfo: {...} } })
+                // 2. json.info (legacy structure)
+                const contactData = json.contact || json;
+                const info = contactData.contactInfo || contactData.info;
+
+                if (info) {
+                    // Transform editor format to expected format
+                    setContactInfo({
+                        address: {
+                            text: info.address || "",
+                            googleMapUrl: info.googleMapUrl || ""
+                        },
+                        phones: [info.phone1, info.phone2].filter(Boolean),
+                        emails: [info.email1, info.email2].filter(Boolean),
+                        officeHours: {
+                            weekdays: info.officeHours?.split?.('\n')[0] || info.officeHours || "",
+                            weekend: info.officeHours?.split?.('\n')[1] || ""
+                        }
+                    });
                 }
             } catch (error) {
                 console.error("Failed to load contact info:", error);

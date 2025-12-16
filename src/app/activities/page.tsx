@@ -1,46 +1,104 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 
-const activities = [
+interface Activity {
+    title: string;
+    description: string;
+    image: string;
+    features: string[];
+}
+
+interface Event {
+    name: string;
+    month: string;
+    desc: string;
+    icon: string;
+}
+
+interface ActivitiesData {
+    activities: Activity[];
+    events: Event[];
+}
+
+const defaultActivities: Activity[] = [
     {
         title: "Arts & Culture",
         description: "Nurture creativity and artistic expression through our comprehensive arts program. Students explore various art forms including classical and western music, traditional and contemporary dance, painting, and theatrical performances.",
         image: "/activity-arts.jpg",
-        features: ["Music & Dance", "Art & Craft", "Drama & Theatre", "Bharatanatyam", "Hip-hop", "Folk Dances"],
+        features: ["Music & Dance", "Art & Craft", "Drama & Theatre", "Bharatanatyam", "Hip-hop", "Folk Dance"]
     },
     {
         title: "Sports & Fitness",
         description: "Build physical strength, teamwork, and sportsmanship through our diverse sports program. From outdoor athletics to indoor games, we ensure every student finds their sporting passion.",
         image: "/activity-sports.jpg",
-        features: ["Cricket", "Football", "Basketball", "Badminton", "Table Tennis", "Yoga & Meditation"],
+        features: ["Cricket", "Football", "Basketball", "Badminton", "Table Tennis", "Yoga & Meditation"]
     },
     {
         title: "Academic Clubs",
         description: "Extend learning beyond textbooks with hands-on exploration in science, mathematics, and technology. Our clubs foster innovation, critical thinking, and a love for discovery.",
         image: "/activity-clubs.jpg",
-        features: ["Science Club", "Math Club", "Coding Club", "Robotics", "Quiz Team", "Tech Projects"],
+        features: ["Science Club", "Math Club", "Coding Club", "Robotics", "Quiz Team", "Tech Projects"]
     },
     {
         title: "Life Skills",
         description: "Develop essential skills for success in life through public speaking, leadership training, and community engagement. We prepare students to be confident, responsible citizens.",
         image: "/activity-lifeskills.jpg",
-        features: ["Public Speaking", "Debates", "Model UN", "Student Council", "Community Service", "Eco Club"],
-    },
+        features: ["Public Speaking", "Debates", "Model UN", "Student Council", "Community Service", "Eco Club"]
+    }
 ];
 
-const events = [
-    { name: "Annual Day", month: "December", desc: "Grand celebration with performances and awards", icon: "🎉" },
+const defaultEvents: Event[] = [
+    { name: "Annual Day", month: "December", desc: "Grand celebration with performances and awards", icon: "🎭" },
     { name: "Sports Day", month: "January", desc: "Athletic events and inter-house competitions", icon: "🏆" },
     { name: "Science Fair", month: "February", desc: "Student projects and innovation showcase", icon: "🔬" },
-    { name: "Cultural Fest", month: "March", desc: "Art, music, and dance performances", icon: "🎭" },
+    { name: "Cultural Fest", month: "March", desc: "Art, music, and dance performances", icon: "🎨" }
 ];
 
 export default function ActivitiesPage() {
+    const [data, setData] = useState<ActivitiesData | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                const res = await fetch(`${apiUrl}/api/pages/activities`);
+                const json = await res.json();
+
+                // Handle both data structures:
+                // 1. json.activities (from editor which saves as { activities: {...} })
+                // 2. Direct json (legacy or if already in correct format)
+                const activitiesData = json.activities || json;
+                const activities = activitiesData.activities || [];
+                const events = activitiesData.events || [];
+
+                // Use default data if API returns empty
+                setData({
+                    activities: activities.length > 0 ? activities : defaultActivities,
+                    events: events.length > 0 ? events : defaultEvents
+                });
+            } catch (error) {
+                console.error("Failed to load activities data:", error);
+                // Use default data on error
+                setData({
+                    activities: defaultActivities,
+                    events: defaultEvents
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+    if (loading) return <div className="min-h-screen pt-32 text-center">Loading...</div>;
+    if (!data) return <div className="min-h-screen pt-32 text-center">Failed to load content</div>;
+
     return (
         <main className="min-h-screen">
             <Header />
@@ -71,11 +129,11 @@ export default function ActivitiesPage() {
                 </div>
             </section>
 
-            {/* Activities Grid - Similar to Facilities */}
+            {/* Activities Grid */}
             <section className="py-20 bg-white">
                 <div className="container mx-auto px-6">
                     <div className="space-y-16">
-                        {activities.map((activity, index) => (
+                        {data.activities.map((activity, index) => (
                             <motion.div
                                 key={activity.title}
                                 initial={{ opacity: 0, y: 40 }}
@@ -85,12 +143,14 @@ export default function ActivitiesPage() {
                             >
                                 <div className={index % 2 === 1 ? 'md:order-2' : ''}>
                                     <div className="relative h-80 rounded-2xl overflow-hidden shadow-lg">
-                                        <Image
-                                            src={activity.image}
-                                            alt={activity.title}
-                                            fill
-                                            className="object-cover"
-                                        />
+                                        {activity.image && (
+                                            <Image
+                                                src={activity.image}
+                                                alt={activity.title}
+                                                fill
+                                                className="object-cover"
+                                            />
+                                        )}
                                     </div>
                                 </div>
                                 <div className={index % 2 === 1 ? 'md:order-1' : ''}>
@@ -99,7 +159,7 @@ export default function ActivitiesPage() {
                                     </h3>
                                     <p className="text-[#666] mb-6">{activity.description}</p>
                                     <div className="flex flex-wrap gap-2">
-                                        {activity.features.map((feature) => (
+                                        {activity.features && activity.features.map((feature) => (
                                             <span key={feature} className="px-4 py-2 bg-[#C4A35A]/10 text-[#C4A35A] rounded-full text-sm font-medium">
                                                 {feature}
                                             </span>
@@ -112,14 +172,14 @@ export default function ActivitiesPage() {
                 </div>
             </section>
 
-            {/* Annual Events - Similar to Additional Facilities */}
+            {/* Annual Events */}
             <section className="py-20 bg-[#FAF8F5]">
                 <div className="container mx-auto px-6">
                     <h2 className="text-3xl md:text-4xl font-semibold text-[#333] text-center mb-12" style={{ fontFamily: "var(--font-playfair)" }}>
                         Annual Events
                     </h2>
                     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {events.map((event) => (
+                        {data.events.map((event) => (
                             <motion.div
                                 key={event.name}
                                 initial={{ opacity: 0, scale: 0.9 }}

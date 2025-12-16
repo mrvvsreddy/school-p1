@@ -19,10 +19,19 @@ export interface AcademicGrade {
     features: string[];
 }
 
+export interface CalendarField {
+    label: string;
+    value: string;
+}
+
 export interface AcademicTerm {
-    term: string;
-    dates: string;
-    exams: string;
+    // New format
+    title?: string;
+    fields?: CalendarField[];
+    // Legacy format (backward compatibility)
+    term?: string;
+    dates?: string;
+    exams?: string;
 }
 
 export interface WelcomeStat {
@@ -69,6 +78,7 @@ export interface Leader {
     name: string;
     role: string;
     exp: string;
+    image?: string;
 }
 
 export interface FoundationItem {

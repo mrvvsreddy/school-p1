@@ -21,9 +21,13 @@ export default function GalleryPage() {
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
                 const res = await fetch(`${apiUrl}/api/pages/gallery`);
                 const json = await res.json();
-                if (json && json.images && json.images.list) {
-                    setImages(json.images.list);
-                }
+
+                // Handle both data structures:
+                // 1. json.gallery (from editor which saves as { gallery: { galleryImages: [...] } })
+                // 2. json.images.list (legacy structure)
+                const galleryData = json.gallery || json;
+                const images = galleryData.galleryImages || galleryData.images?.list || [];
+                setImages(images);
             } catch (error) {
                 console.error("Failed to load gallery:", error);
             }

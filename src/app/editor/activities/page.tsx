@@ -59,9 +59,18 @@ export default function ActivitiesEditorPage() {
         fetch(`${apiUrl}/api/pages/activities`)
             .then((res) => res.json())
             .then((content) => {
-                if (content.activities) {
-                    setData(content.activities);
-                }
+                // Handle nested data structure from API
+                const activitiesContent = content.activities || content;
+                const loadedData: ActivitiesData = {
+                    activities: activitiesContent.activities || defaultData.activities,
+                    events: activitiesContent.events || defaultData.events
+                };
+                // Ensure each activity has a features array
+                loadedData.activities = loadedData.activities.map((act: Activity) => ({
+                    ...act,
+                    features: act.features || []
+                }));
+                setData(loadedData);
                 setLoading(false);
             })
             .catch((err) => {
@@ -140,39 +149,65 @@ export default function ActivitiesEditorPage() {
 
     // --- Helpers ---
     const updateActivity = (index: number, field: keyof Activity, value: string | string[]) => {
-        const newActivities = [...data.activities];
+        const currentActivities = data.activities || [];
+        const newActivities = [...currentActivities];
         newActivities[index] = { ...newActivities[index], [field]: value };
         setData({ ...data, activities: newActivities });
     };
 
     const addActivity = () => {
+        const currentActivities = data.activities || [];
         setData({
             ...data,
-            activities: [...data.activities, { title: "New Activity", description: "", image: "", features: [] }]
+            activities: [...currentActivities, { title: "New Activity", description: "", image: "", features: [] }]
         });
     };
 
     const removeActivity = (index: number) => {
-        setData({ ...data, activities: data.activities.filter((_, i) => i !== index) });
+        const currentActivities = data.activities || [];
+        setData({ ...data, activities: currentActivities.filter((_, i) => i !== index) });
     };
 
-    const updateActivityFeatures = (index: number, featuresString: string) => {
-        const features = featuresString.split(",").map(f => f.trim()).filter(f => f);
-        updateActivity(index, "features", features);
+    const addFeature = (activityIndex: number) => {
+        const currentActivities = data.activities || [];
+        const newActivities = [...currentActivities];
+        const features = [...(newActivities[activityIndex].features || []), ""];
+        newActivities[activityIndex] = { ...newActivities[activityIndex], features };
+        setData({ ...data, activities: newActivities });
+    };
+
+    const updateFeature = (activityIndex: number, featureIndex: number, value: string) => {
+        const currentActivities = data.activities || [];
+        const newActivities = [...currentActivities];
+        const features = [...(newActivities[activityIndex].features || [])];
+        features[featureIndex] = value;
+        newActivities[activityIndex] = { ...newActivities[activityIndex], features };
+        setData({ ...data, activities: newActivities });
+    };
+
+    const removeFeature = (activityIndex: number, featureIndex: number) => {
+        const currentActivities = data.activities || [];
+        const newActivities = [...currentActivities];
+        const features = (newActivities[activityIndex].features || []).filter((_, i) => i !== featureIndex);
+        newActivities[activityIndex] = { ...newActivities[activityIndex], features };
+        setData({ ...data, activities: newActivities });
     };
 
     const updateEvent = (index: number, field: keyof Event, value: string) => {
-        const newEvents = [...data.events];
+        const currentEvents = data.events || [];
+        const newEvents = [...currentEvents];
         newEvents[index] = { ...newEvents[index], [field]: value };
         setData({ ...data, events: newEvents });
     };
 
     const addEvent = () => {
-        setData({ ...data, events: [...data.events, { name: "New Event", month: "January", desc: "", icon: "🎉" }] });
+        const currentEvents = data.events || [];
+        setData({ ...data, events: [...currentEvents, { name: "New Event", month: "January", desc: "", icon: "🎉" }] });
     };
 
     const removeEvent = (index: number) => {
-        setData({ ...data, events: data.events.filter((_, i) => i !== index) });
+        const currentEvents = data.events || [];
+        setData({ ...data, events: currentEvents.filter((_, i) => i !== index) });
     };
 
     if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -230,7 +265,7 @@ export default function ActivitiesEditorPage() {
                                 </button>
                             </div>
                             <div className="space-y-6">
-                                {data.activities.map((activity, i) => (
+                                {(data.activities || []).map((activity, i) => (
                                     <div key={i} className="p-4 bg-gray-50 rounded-xl border border-gray-200 relative group">
                                         <button
                                             onClick={() => removeActivity(i)}
@@ -260,13 +295,41 @@ export default function ActivitiesEditorPage() {
                                         </div>
 
                                         <div className="mb-4">
-                                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Features (comma separated)</label>
-                                            <input
-                                                type="text"
-                                                value={activity.features.join(", ")}
-                                                onChange={(e) => updateActivityFeatures(i, e.target.value)}
-                                                className="w-full px-3 py-2 bg-white rounded-lg border border-gray-200 focus:border-[#43a047] focus:ring-2 focus:ring-[#43a047]/20 outline-none transition-all"
-                                            />
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Features</label>
+                                                <button
+                                                    onClick={() => addFeature(i)}
+                                                    className="text-xs px-2 py-1 bg-[#43a047]/10 text-[#43a047] rounded font-medium hover:bg-[#43a047]/20 transition-colors"
+                                                >
+                                                    + Add Feature
+                                                </button>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {(activity.features || []).map((feature, fi) => (
+                                                    <div key={fi} className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#43a047]/10 border border-[#43a047]/20 rounded-full group">
+                                                        <input
+                                                            type="text"
+                                                            value={feature}
+                                                            onChange={(e) => updateFeature(i, fi, e.target.value)}
+                                                            placeholder="Feature..."
+                                                            className="bg-transparent border-none outline-none text-sm text-[#2e7d32] font-medium w-auto min-w-[60px]"
+                                                            style={{ width: `${Math.max(60, feature.length * 8)}px` }}
+                                                        />
+                                                        <button
+                                                            onClick={() => removeFeature(i, fi)}
+                                                            className="p-0.5 text-red-400 hover:text-red-600 transition-colors"
+                                                            title="Remove feature"
+                                                        >
+                                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                {(activity.features || []).length === 0 && (
+                                                    <p className="text-xs text-gray-400 italic">No features added yet.</p>
+                                                )}
+                                            </div>
                                         </div>
 
                                         <div>
@@ -314,7 +377,7 @@ export default function ActivitiesEditorPage() {
                                 </button>
                             </div>
                             <div className="space-y-4">
-                                {data.events.map((event, i) => (
+                                {(data.events || []).map((event, i) => (
                                     <div key={i} className="p-4 bg-gray-50 rounded-xl border border-gray-200 relative group">
                                         <button
                                             onClick={() => removeEvent(i)}

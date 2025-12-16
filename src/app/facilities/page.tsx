@@ -53,10 +53,8 @@ interface AdditionalFacility {
     icon: string;
 }
 
-interface FacilityResponse {
-    main_list?: { list: Facility[] };
-    additional?: { list: AdditionalFacility[] };
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FacilityResponse = any; // Flexible to handle both editor and legacy formats
 
 export default function FacilitiesPage() {
     const [data, setData] = useState<FacilityResponse | null>(null);
@@ -77,8 +75,12 @@ export default function FacilitiesPage() {
 
     if (!data) return <div className="min-h-screen pt-32 text-center">Loading...</div>;
 
-    const facilities = data.main_list?.list || [];
-    const additionalFacilities = data.additional?.list || [];
+    // Handle both data structures:
+    // 1. data.facilities (from editor which saves as { facilities: { facilities: [...], additional: [...] } })
+    // 2. data.main_list.list (legacy structure)
+    const facilitiesData = data.facilities || data;
+    const facilities: Facility[] = facilitiesData.facilities || facilitiesData.main_list?.list || [];
+    const additionalFacilities: AdditionalFacility[] = facilitiesData.additional || facilitiesData.additional?.list || [];
 
     return (
         <main className="min-h-screen">

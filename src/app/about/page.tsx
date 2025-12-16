@@ -15,7 +15,11 @@ export default function AboutPage() {
     fetch(`${apiUrl}/api/pages/about`)
       .then((res) => res.json())
       .then((data) => {
-        setAbout(data.about);
+        // Handle both data structures:
+        // 1. data.about (from editor which saves as { about: {...} })
+        // 2. Direct data (legacy structure)
+        const aboutData = data.about || data;
+        setAbout(aboutData);
         setLoading(false);
       })
       .catch((err) => {
@@ -161,8 +165,12 @@ export default function AboutPage() {
                 viewport={{ once: true }}
                 className="text-center"
               >
-                <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#C4A35A] to-[#A38842] flex items-center justify-center text-white text-3xl font-bold">
-                  {leader.name.split(' ').map(n => n[0]).join('')}
+                <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#C4A35A] to-[#A38842] flex items-center justify-center text-white text-3xl font-bold overflow-hidden relative">
+                  {leader.image ? (
+                    <img src={leader.image} alt={leader.name} className="w-full h-full object-cover" />
+                  ) : (
+                    leader.name.split(' ').map(n => n[0]).join('')
+                  )}
                 </div>
                 <h3 className="text-lg font-semibold text-[#333]">{leader.name}</h3>
                 <p className="text-[#C4A35A] font-medium">{leader.role}</p>

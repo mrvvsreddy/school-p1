@@ -78,6 +78,14 @@ const pages: PageData[] = [
         image: "/facility-classroom.jpg"
     },
     {
+        id: "application",
+        name: "Application Form",
+        description: "Edit admission form documents, class options, and messages",
+        icon: "📋",
+        route: "/editor/application",
+        image: "/facility-classroom.jpg"
+    },
+    {
         id: "gallery",
         name: "Gallery",
         description: "Upload and organize school photo gallery",
