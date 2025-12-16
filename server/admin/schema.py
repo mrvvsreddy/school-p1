@@ -146,6 +146,22 @@ CREATE TABLE IF NOT EXISTS school_settings (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Admission Applications Table (stores form submissions from /admissions/apply)
+CREATE TABLE IF NOT EXISTS admission_applications (
+    id SERIAL PRIMARY KEY,
+    application_id VARCHAR(50) UNIQUE NOT NULL,
+    student_name VARCHAR(255) NOT NULL,
+    parent_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    dial_code VARCHAR(10) DEFAULT '+91',
+    phone VARCHAR(20) NOT NULL,
+    class_applying VARCHAR(50) NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending',
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_students_class ON students(class);
 CREATE INDEX IF NOT EXISTS idx_students_status ON students(status);
@@ -153,6 +169,8 @@ CREATE INDEX IF NOT EXISTS idx_teachers_subject ON teachers(subject);
 CREATE INDEX IF NOT EXISTS idx_exams_date ON exams(date);
 CREATE INDEX IF NOT EXISTS idx_attendance_date ON attendance(date);
 CREATE INDEX IF NOT EXISTS idx_notices_status ON notices(status);
+CREATE INDEX IF NOT EXISTS idx_admission_apps_status ON admission_applications(status);
+CREATE INDEX IF NOT EXISTS idx_admission_apps_created ON admission_applications(created_at);
 """
 
 def get_admin_schema():

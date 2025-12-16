@@ -4,6 +4,44 @@ import json
 from supabase import create_client, Client
 
 # Hardcoded data from components
+
+# Full activities data for the activities page
+activities_page_data = {
+    "activities": [
+        {
+            "title": "Arts & Culture",
+            "description": "Nurture creativity and artistic expression through our comprehensive arts program. Students explore various art forms including classical and western music, traditional and contemporary dance, painting, and theatrical performances.",
+            "image": "/activity-arts.jpg",
+            "features": ["Music & Dance", "Art & Craft", "Drama & Theatre", "Bharatanatyam", "Hip-hop", "Folk Dance"]
+        },
+        {
+            "title": "Sports & Fitness",
+            "description": "Build physical strength, teamwork, and sportsmanship through our diverse sports program. From outdoor athletics to indoor games, we ensure every student finds their sporting passion.",
+            "image": "/activity-sports.jpg",
+            "features": ["Cricket", "Football", "Basketball", "Badminton", "Table Tennis", "Yoga & Meditation"]
+        },
+        {
+            "title": "Academic Clubs",
+            "description": "Extend learning beyond textbooks with hands-on exploration in science, mathematics, and technology. Our clubs foster innovation, critical thinking, and a love for discovery.",
+            "image": "/activity-clubs.jpg",
+            "features": ["Science Club", "Math Club", "Coding Club", "Robotics", "Quiz Team", "Tech Projects"]
+        },
+        {
+            "title": "Life Skills",
+            "description": "Develop essential skills for success in life through public speaking, leadership training, and community engagement. We prepare students to be confident, responsible citizens.",
+            "image": "/activity-lifeskills.jpg",
+            "features": ["Public Speaking", "Debates", "Model UN", "Student Council", "Community Service", "Eco Club"]
+        }
+    ],
+    "events": [
+        { "name": "Annual Day", "month": "December", "desc": "Grand celebration with performances and awards", "icon": "🎭" },
+        { "name": "Sports Day", "month": "January", "desc": "Athletic events and inter-house competitions", "icon": "🏆" },
+        { "name": "Science Fair", "month": "February", "desc": "Student projects and innovation showcase", "icon": "🔬" },
+        { "name": "Cultural Fest", "month": "March", "desc": "Art, music, and dance performances", "icon": "🎨" }
+    ]
+}
+
+# Legacy activities data (for backwards compatibility)
 activities_data = [
     {
         "id": 1,
@@ -154,6 +192,42 @@ fee_structure_data = [
     { "class": "Class 9-10", "admission": "₹20,000", "tuition": "₹4,500/month" },
 ]
 
+# Application Form Data
+application_form_data = {
+    "pageTitle": "Apply Now",
+    "pageSubtitle": "Complete the form below to start your admission journey.",
+    "formFields": [
+        { "id": 1, "name": "studentName", "label": "Student's Full Name", "type": "text", "placeholder": "Enter student's name", "required": True },
+        { "id": 2, "name": "parentName", "label": "Parent/Guardian Name", "type": "text", "placeholder": "Enter parent's name", "required": True },
+        { "id": 3, "name": "email", "label": "Email Address", "type": "email", "placeholder": "Enter email address", "required": True },
+        { "id": 4, "name": "phone", "label": "Phone Number", "type": "phone", "placeholder": "Enter phone number", "required": True, "defaultDialCode": "+91" },
+        { "id": 5, "name": "classApplying", "label": "Class Applying For", "type": "select", "placeholder": "Select Class", "required": True },
+    ],
+    "documents": [
+        { "id": 1, "name": "Birth Certificate", "required": True },
+        { "id": 2, "name": "Previous School Report Card", "required": True },
+        { "id": 3, "name": "Transfer Certificate (if applicable)", "required": False },
+        { "id": 4, "name": "4 Passport Size Photos", "required": True },
+        { "id": 5, "name": "Aadhar Card (Student & Parents)", "required": True },
+        { "id": 6, "name": "Address Proof", "required": True },
+    ],
+    "classOptions": [
+        { "value": "1", "label": "Class 1" },
+        { "value": "2", "label": "Class 2" },
+        { "value": "3", "label": "Class 3" },
+        { "value": "4", "label": "Class 4" },
+        { "value": "5", "label": "Class 5" },
+        { "value": "6", "label": "Class 6" },
+        { "value": "7", "label": "Class 7" },
+        { "value": "8", "label": "Class 8" },
+        { "value": "9", "label": "Class 9" },
+        { "value": "10", "label": "Class 10" },
+    ],
+    "submitButtonText": "Submit Application",
+    "importantNote": "All documents should be submitted in original along with one photocopy during the admission process.",
+    "successMessage": "Thank you for your application. Our admissions team will contact you within 2-3 business days."
+}
+
 # Facilities Data
 facilities_list_data = [
     {
@@ -278,8 +352,9 @@ async def migrate():
     table = "site_pages_content"
 
     items_to_seed = [
-        {"page_slug": "activities", "section_key": "list", "content": {"list": activities_data}},
-        {"page_slug": "activities", "section_key": "main", "content": {"title": "Extracurricular Activities", "intro": "We believe in holistic development..."}},
+        # Activities page - full data with activities and events
+        {"page_slug": "activities", "section_key": "activities", "content": activities_page_data},
+        {"page_slug": "activities", "section_key": "list", "content": {"list": activities_data}},  # Legacy support
         {"page_slug": "academics", "section_key": "courses", "content": {"list": courses_data}},
         {"page_slug": "shared", "section_key": "footer", "content": footer_data},
         
@@ -287,6 +362,7 @@ async def migrate():
         {"page_slug": "admissions", "section_key": "process", "content": {"steps": admission_steps_data}},
         {"page_slug": "admissions", "section_key": "requirements", "content": {"documents": documents_data}},
         {"page_slug": "admissions", "section_key": "fees", "content": {"structure": fee_structure_data}},
+        {"page_slug": "admissions", "section_key": "application_form", "content": application_form_data},
         
         {"page_slug": "facilities", "section_key": "main_list", "content": {"list": facilities_list_data}},
         {"page_slug": "facilities", "section_key": "additional", "content": {"list": additional_facilities_data}},

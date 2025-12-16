@@ -113,7 +113,19 @@ class NoticeBase(BaseModel):
 class NoticeCreate(NoticeBase):
     pass
 
-# ============= HELPER FUNCTION =============
+# Admission Application Models
+class AdmissionApplicationCreate(BaseModel):
+    student_name: str
+    parent_name: str
+    email: str
+    dial_code: str = "+91"
+    phone: str
+    class_applying: str
+
+class AdmissionApplicationUpdate(BaseModel):
+    status: Optional[str] = None
+    notes: Optional[str] = None
+
 def get_supabase():
     """Get Supabase client from main app"""
     from server import supabase
@@ -326,3 +338,87 @@ async def update_setting(setting_key: str, value: dict):
     }, on_conflict="setting_key").execute()
     
     return {"success": True, "setting": result.data[0]}
+
+# ============= ADMISSION APPLICATION ROUTES =============
+
+def generate_application_id():
+    """Generate unique application ID like APP-2024-0001"""
+    year = datetime.now().year
+    import random
+    num = random.randint(1000, 9999)
+    return f"APP-{year}-{num}"
+
+@router.get("/admissions/applications")
+async def get_admission_applications(
+    status: Optional[str] = None,
+    class_applying: Optional[str] = None
+):
+    """Get all admission applications (for admin view)"""
+    db = get_supabase()
+    
+    query = db.table("admission_applications").select("*")
+    
+    if status:
+        query = query.eq("status", status)
+    if class_applying:
+        query = query.eq("class_applying", class_applying)
+    
+    result = query.order("created_at", desc=True).execute()
+    return {"applications": result.data}
+
+@router.post("/admissions/apply")
+async def submit_admission_application(application: AdmissionApplicationCreate):
+    """Submit a new admission application (public endpoint)"""
+    db = get_supabase()
+    
+    # Generate unique application ID
+    app_id = generate_application_id()
+    
+    # Prepare data for insertion
+    app_data = application.model_dump()
+    app_data["application_id"] = app_id
+    app_data["status"] = "pending"
+    
+    result = db.table("admission_applications").insert(app_data).execute()
+    
+    return {
+        "success": True, 
+        "message": "Application submitted successfully",
+        "application_id": app_id,
+        "application": result.data[0]
+    }
+
+@router.get("/admissions/applications/{app_id}")
+async def get_admission_application(app_id: int):
+    """Get a specific admission application"""
+    db = get_supabase()
+    
+    result = db.table("admission_applications").select("*").eq("id", app_id).execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Application not found")
+    
+    return result.data[0]
+
+@router.put("/admissions/applications/{app_id}")
+async def update_admission_application(app_id: int, update: AdmissionApplicationUpdate):
+    """Update admission application status/notes (admin only)"""
+    db = get_supabase()
+    
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    update_data["updated_at"] = datetime.now().isoformat()
+    
+    result = db.table("admission_applications").update(update_data).eq("id", app_id).execute()
+    
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Application not found")
+    
+    return {"success": True, "application": result.data[0]}
+
+@router.delete("/admissions/applications/{app_id}")
+async def delete_admission_application(app_id: int):
+    """Delete an admission application"""
+    db = get_supabase()
+    
+    db.table("admission_applications").delete().eq("id", app_id).execute()
+    return {"success": True, "message": "Application deleted"}
+
