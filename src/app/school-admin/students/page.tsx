@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { getStudents, deleteStudent, Student } from "@/school-admin/services/studentService";
+import { getClasses, Class } from "@/school-admin/services/classService";
 import StudentDetailModal from "@/school-admin/components/StudentDetailModal";
 import AddStudentModal from "@/school-admin/components/AddStudentModal";
 
 export default function StudentsPage() {
     // State
     const [students, setStudents] = useState<Student[]>([]);
+    const [classes, setClasses] = useState<Class[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
@@ -16,13 +18,32 @@ export default function StudentsPage() {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [totalStudents, setTotalStudents] = useState(0);
 
+    // Create class lookup map
+    const classMap = new Map(classes.map(c => [c.id, c]));
+
+    // Get class display name from class_id
+    const getClassName = (classId: string) => {
+        const cls = classMap.get(classId);
+        return cls ? `${cls.class}-${cls.section}` : classId.slice(0, 8);
+    };
+
+    // Fetch classes
+    const fetchClasses = useCallback(async () => {
+        try {
+            const response = await getClasses();
+            setClasses(response.classes);
+        } catch (err) {
+            console.error("Error fetching classes:", err);
+        }
+    }, []);
+
     // Fetch students from API
     const fetchStudents = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            const filters: { class?: string; search?: string } = {};
-            if (classFilter !== "All") filters.class = classFilter;
+            const filters: { class_id?: string; search?: string } = {};
+            if (classFilter !== "All") filters.class_id = classFilter;
             if (searchQuery) filters.search = searchQuery;
 
             const response = await getStudents(filters);
@@ -37,19 +58,23 @@ export default function StudentsPage() {
     }, [classFilter, searchQuery]);
 
     useEffect(() => {
+        fetchClasses();
+    }, [fetchClasses]);
+
+    useEffect(() => {
         fetchStudents();
     }, [fetchStudents]);
 
     // Handle student added
     const handleStudentAdded = () => {
         setIsAddModalOpen(false);
-        fetchStudents(); // Refresh list
+        fetchStudents();
     };
 
     // Handle student updated
     const handleStudentUpdated = () => {
         setSelectedStudent(null);
-        fetchStudents(); // Refresh list
+        fetchStudents();
     };
 
     // Handle student delete
@@ -58,15 +83,12 @@ export default function StudentsPage() {
 
         try {
             await deleteStudent(studentId);
-            fetchStudents(); // Refresh list
+            fetchStudents();
             setSelectedStudent(null);
         } catch (err) {
             alert(err instanceof Error ? err.message : "Failed to delete student");
         }
     };
-
-    // Get unique classes for filter
-    const uniqueClasses = [...new Set(students.map(s => s.class))].sort();
 
     return (
         <div className="space-y-6">
@@ -107,7 +129,7 @@ export default function StudentsPage() {
                         <p className="text-sm text-gray-500">Classes</p>
                         <div className="w-2 h-2 rounded-full bg-purple-500"></div>
                     </div>
-                    <p className="text-2xl font-bold text-[#333] mt-2">{uniqueClasses.length}</p>
+                    <p className="text-2xl font-bold text-[#333] mt-2">{classes.length}</p>
                 </div>
             </div>
 
@@ -139,8 +161,8 @@ export default function StudentsPage() {
                                 className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200 focus:outline-none focus:border-[#C4A35A] cursor-pointer"
                             >
                                 <option value="All">All Classes</option>
-                                {uniqueClasses.map(cls => (
-                                    <option key={cls} value={cls}>{cls}</option>
+                                {classes.map(cls => (
+                                    <option key={cls.id} value={cls.id}>{cls.class}-{cls.section}</option>
                                 ))}
                             </select>
 
@@ -219,7 +241,7 @@ export default function StudentsPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="inline-flex px-2.5 py-0.5 rounded-md bg-gray-100 text-gray-700 text-xs font-medium border border-gray-200">
-                                                {student.class}
+                                                {getClassName(student.class_id)}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-600 font-medium">#{student.roll_no}</td>
@@ -248,6 +270,7 @@ export default function StudentsPage() {
             {selectedStudent && (
                 <StudentDetailModal
                     student={selectedStudent}
+                    className={getClassName(selectedStudent.class_id)}
                     onClose={() => setSelectedStudent(null)}
                     onEdit={handleStudentUpdated}
                     onDelete={() => handleDeleteStudent(selectedStudent.id)}

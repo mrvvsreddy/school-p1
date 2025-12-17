@@ -2,7 +2,7 @@
 Pydantic schemas for Student API
 
 Schema Design:
-- Fixed columns: School-essential data (id, name, roll_no, class, admission, photo)
+- Uses class_id FK to reference classes table
 - personal_info JSONB: Flexible personal data (contact, parents, address, etc.)
 """
 from pydantic import BaseModel, Field
@@ -44,12 +44,11 @@ class PersonalInfo(BaseModel):
 
 
 class StudentBase(BaseModel):
-    """Base student schema - school-essential columns only"""
+    """Base student schema - uses class_id FK"""
     # Required school data
     name: str = Field(..., min_length=1, max_length=100)
     roll_no: str = Field(..., min_length=1, max_length=20)
-    class_name: str = Field(..., alias="class", min_length=1, max_length=20)
-    section: Optional[str] = None
+    class_id: UUID  # FK to classes table
     
     # School records
     admission_no: Optional[str] = None
@@ -72,8 +71,7 @@ class StudentUpdate(BaseModel):
     """Schema for updating a student (all fields optional)"""
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     roll_no: Optional[str] = Field(None, min_length=1, max_length=20)
-    class_name: Optional[str] = Field(None, alias="class", min_length=1, max_length=20)
-    section: Optional[str] = None
+    class_id: Optional[UUID] = None
     admission_no: Optional[str] = None
     admission_date: Optional[date] = None
     photo_url: Optional[str] = None
@@ -84,9 +82,16 @@ class StudentUpdate(BaseModel):
         populate_by_name = True
 
 
-class StudentResponse(StudentBase):
+class StudentResponse(BaseModel):
     """Schema for student response"""
     id: UUID
+    name: str
+    roll_no: str
+    class_id: UUID
+    admission_no: Optional[str] = None
+    admission_date: Optional[date] = None
+    photo_url: Optional[str] = None
+    personal_info: Optional[Dict[str, Any]] = None
     is_active: bool = True
     created_at: datetime
     updated_at: datetime

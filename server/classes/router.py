@@ -39,7 +39,7 @@ def check_supabase():
 
 
 def get_class_with_details(class_data: dict) -> dict:
-    """Enrich class data with student count and teacher name"""
+    """Enrich single class data with student count and teacher name"""
     class_id = class_data.get("id")
     
     # Get student count for this class
@@ -49,11 +49,11 @@ def get_class_with_details(class_data: dict) -> dict:
     except Exception:
         class_data["students_count"] = 0
     
-    # Get class teacher name
+    # Get class teacher name (class_teacher_id is employee_id like 'TCH005')
     teacher_id = class_data.get("class_teacher_id")
     if teacher_id:
         try:
-            teacher = supabase.table("teachers").select("name").eq("id", teacher_id).single().execute()
+            teacher = supabase.table("teachers").select("name").eq("employee_id", teacher_id).single().execute()
             class_data["class_teacher_name"] = teacher.data.get("name") if teacher.data else None
         except Exception:
             class_data["class_teacher_name"] = None
@@ -63,6 +63,44 @@ def get_class_with_details(class_data: dict) -> dict:
     return class_data
 
 
+def enrich_classes_batch(classes: list) -> list:
+    """Batch enrich multiple classes with student counts (single query optimization)"""
+    if not classes:
+        return []
+    
+    class_ids = [c.get("id") for c in classes]
+    
+    # Get all student counts in ONE query
+    try:
+        all_students = supabase.table("students").select("class_id").eq("is_active", True).in_("class_id", class_ids).execute()
+        # Count students per class
+        counts = {}
+        for s in all_students.data:
+            cid = s.get("class_id")
+            counts[cid] = counts.get(cid, 0) + 1
+    except Exception:
+        counts = {}
+    
+    # Get all unique teacher IDs (these are employee_ids like 'TCH005', not UUIDs)
+    teacher_ids = list(set(c.get("class_teacher_id") for c in classes if c.get("class_teacher_id")))
+    teachers_map = {}
+    if teacher_ids:
+        try:
+            # Lookup by employee_id since class_teacher_id contains values like 'TCH005'
+            teachers = supabase.table("teachers").select("employee_id, name").in_("employee_id", teacher_ids).execute()
+            teachers_map = {t.get("employee_id"): t.get("name") for t in teachers.data}
+        except Exception as e:
+            logger.warning(f"Failed to lookup teachers: {e}")
+    
+    # Enrich classes
+    for c in classes:
+        c["students_count"] = counts.get(c.get("id"), 0)
+        tid = c.get("class_teacher_id")
+        c["class_teacher_name"] = teachers_map.get(tid) if tid else None
+    
+    return classes
+
+
 @classes_router.get("", response_model=ClassListResponse)
 async def list_classes(
     page: int = Query(1, ge=1),
@@ -70,7 +108,7 @@ async def list_classes(
     search: Optional[str] = None,
     active_only: bool = True
 ):
-    """List all classes with student counts"""
+    """List all classes with student counts (optimized batch query)"""
     check_supabase()
     
     try:
@@ -89,8 +127,8 @@ async def list_classes(
         
         result = query.execute()
         
-        # Enrich with student counts and teacher names
-        classes = [get_class_with_details(c) for c in result.data]
+        # Batch enrich with student counts and teacher names (single query each)
+        classes = enrich_classes_batch(result.data)
         
         return ClassListResponse(
             classes=classes,

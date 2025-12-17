@@ -2,15 +2,14 @@
  * Student Service - API communication for student management
  * 
  * Schema Design:
- * - Fixed columns: School-essential data (id, name, roll_no, class, admission, photo)
- * - personal_info: Flexible JSONB for personal data (teachers can add custom fields)
+ * - Uses class_id FK to reference classes table
+ * - personal_info: Flexible JSONB for personal data
  */
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 // Personal info is flexible - teachers can add any fields they need
 export interface PersonalInfo {
-    // Standard fields (optional)
     phone?: string;
     email?: string;
     address?: string;
@@ -26,23 +25,18 @@ export interface PersonalInfo {
     guardian_phone?: string;
     guardian_email?: string;
     previous_school?: string;
-    // Allow any additional custom fields
     [key: string]: string | undefined;
 }
 
 export interface Student {
     id: string;
-    // School-essential columns (fixed)
     name: string;
     roll_no: string;
-    class: string;
-    section?: string;
+    class_id: string;  // FK to classes table
     admission_no?: string;
     admission_date?: string;
     photo_url?: string;
-    // Flexible personal info
     personal_info?: PersonalInfo;
-    // System fields
     is_active?: boolean;
     created_at?: string;
     updated_at?: string;
@@ -58,7 +52,7 @@ export interface StudentListResponse {
 export interface StudentFilters {
     page?: number;
     page_size?: number;
-    class?: string;
+    class_id?: string;  // Filter by class_id
     search?: string;
     active_only?: boolean;
 }
@@ -71,7 +65,7 @@ export async function getStudents(filters: StudentFilters = {}): Promise<Student
 
     if (filters.page) params.append('page', filters.page.toString());
     if (filters.page_size) params.append('page_size', filters.page_size.toString());
-    if (filters.class) params.append('class', filters.class);
+    if (filters.class_id) params.append('class_id', filters.class_id);
     if (filters.search) params.append('search', filters.search);
     if (filters.active_only !== undefined) params.append('active_only', filters.active_only.toString());
 

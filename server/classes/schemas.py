@@ -11,7 +11,7 @@ class ClassBase(BaseModel):
     """Base class schema"""
     class_name: str = Field(..., alias="class", min_length=1, max_length=20)
     section: str = Field(..., min_length=1, max_length=10)
-    class_teacher_id: Optional[UUID] = None
+    class_teacher_id: Optional[str] = None  # TEXT in DB, can be UUID or employee ID
     capacity: int = Field(default=40, ge=1, le=100)
     room: Optional[str] = None
     academic_year: Optional[str] = "2024-25"
@@ -29,7 +29,7 @@ class ClassUpdate(BaseModel):
     """Schema for updating a class"""
     class_name: Optional[str] = Field(None, alias="class", min_length=1, max_length=20)
     section: Optional[str] = Field(None, min_length=1, max_length=10)
-    class_teacher_id: Optional[UUID] = None
+    class_teacher_id: Optional[str] = None
     capacity: Optional[int] = Field(None, ge=1, le=100)
     room: Optional[str] = None
     academic_year: Optional[str] = None
@@ -39,9 +39,15 @@ class ClassUpdate(BaseModel):
         populate_by_name = True
 
 
-class ClassResponse(ClassBase):
+class ClassResponse(BaseModel):
     """Schema for class response"""
     id: UUID
+    class_name: str = Field(..., alias="class")
+    section: str
+    class_teacher_id: Optional[str] = None
+    capacity: int = 40
+    room: Optional[str] = None
+    academic_year: Optional[str] = "2024-25"
     is_active: bool = True
     created_at: datetime
     updated_at: datetime

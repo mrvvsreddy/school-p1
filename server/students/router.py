@@ -1,9 +1,10 @@
 """
 Students API Router
-CRUD operations for student management
+CRUD operations for student management with class_id FK
 """
 import os
 import uuid
+import logging
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
@@ -17,6 +18,9 @@ from .schemas import (
     StudentResponse,
     StudentListResponse,
 )
+
+# Setup logging
+logger = logging.getLogger(__name__)
 
 # Initialize Supabase client
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -34,39 +38,11 @@ def check_supabase():
         raise HTTPException(status_code=503, detail="Database not connected")
 
 
-def transform_student_data(data: dict) -> dict:
-    """Transform frontend field names to database field names"""
-    transformed = {}
-    
-    # Map 'class' to 'class_name' for database
-    field_mapping = {
-        "class": "class_name",
-        "class_name": "class_name",
-    }
-    
-    for key, value in data.items():
-        if key in field_mapping:
-            transformed[field_mapping[key]] = value
-        else:
-            transformed[key] = value
-    
-    return transformed
-
-
-def transform_db_to_response(row: dict) -> dict:
-    """Transform database row to response format"""
-    result = dict(row)
-    # Map class_name back to class for frontend
-    if "class_name" in result:
-        result["class"] = result.pop("class_name")
-    return result
-
-
 @students_router.get("", response_model=StudentListResponse)
 async def list_students(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
-    class_filter: Optional[str] = Query(None, alias="class"),
+    class_id: Optional[str] = Query(None),  # Filter by class_id
     search: Optional[str] = None,
     active_only: bool = True
 ):
@@ -83,8 +59,8 @@ async def list_students(
         if active_only:
             query = query.eq("is_active", True)
         
-        if class_filter:
-            query = query.eq("class_name", class_filter)
+        if class_id:
+            query = query.eq("class_id", class_id)
         
         if search:
             query = query.or_(f"name.ilike.%{search}%,roll_no.ilike.%{search}%")
@@ -98,16 +74,14 @@ async def list_students(
         
         result = query.execute()
         
-        # Transform rows
-        students = [transform_db_to_response(row) for row in result.data]
-        
         return StudentListResponse(
-            students=students,
-            total=result.count or len(students),
+            students=result.data,
+            total=result.count or len(result.data),
             page=page,
             page_size=page_size
         )
     except Exception as e:
+        logger.error(f"Error listing students: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch students: {str(e)}")
 
 
@@ -124,10 +98,11 @@ async def get_student(student_id: UUID):
         if not result.data:
             raise HTTPException(status_code=404, detail="Student not found")
         
-        return transform_db_to_response(result.data)
+        return result.data
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Error fetching student: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch student: {str(e)}")
 
 
@@ -139,30 +114,36 @@ async def create_student(student: StudentCreate):
     check_supabase()
     
     try:
-        # Check for duplicate roll_no
-        existing = supabase.table(TABLE_NAME).select("id").eq("roll_no", student.roll_no).execute()
+        # Check for duplicate roll_no within the same class
+        existing = supabase.table(TABLE_NAME).select("id").eq("roll_no", student.roll_no).eq("class_id", str(student.class_id)).execute()
         if existing.data:
-            raise HTTPException(status_code=400, detail="Roll number already exists")
+            raise HTTPException(status_code=400, detail="Roll number already exists in this class")
         
-        # Prepare data with UUID
+        # Prepare data
         data = student.model_dump(by_alias=False, exclude_none=True)
-        data = transform_student_data(data)
-        data["id"] = str(uuid.uuid4())  # Generate UUID for new student
+        
+        # Convert UUID to string
+        data["class_id"] = str(data["class_id"])
+        
+        data["id"] = str(uuid.uuid4())
         data["created_at"] = datetime.utcnow().isoformat()
         data["updated_at"] = datetime.utcnow().isoformat()
         data["is_active"] = True
+        
+        # Convert admission_date if present
+        if "admission_date" in data and data["admission_date"]:
+            data["admission_date"] = data["admission_date"].isoformat() if hasattr(data["admission_date"], 'isoformat') else str(data["admission_date"])
         
         result = supabase.table(TABLE_NAME).insert(data).execute()
         
         if not result.data:
             raise HTTPException(status_code=500, detail="Failed to create student")
         
-        return transform_db_to_response(result.data[0])
+        return result.data[0]
     except HTTPException:
         raise
     except Exception as e:
-        # Log error on server instead of exposing to client
-        print(f"Error creating student: {e}")
+        logger.error(f"Error creating student: {e}")
         raise HTTPException(status_code=500, detail="Failed to create student. Check server logs.")
 
 
@@ -185,7 +166,14 @@ async def update_student(student_id: UUID, student: StudentUpdate):
         if not data:
             raise HTTPException(status_code=400, detail="No fields to update")
         
-        data = transform_student_data(data)
+        # Convert UUID if present
+        if "class_id" in data:
+            data["class_id"] = str(data["class_id"])
+        
+        # Convert admission_date if present
+        if "admission_date" in data and data["admission_date"]:
+            data["admission_date"] = data["admission_date"].isoformat() if hasattr(data["admission_date"], 'isoformat') else str(data["admission_date"])
+        
         data["updated_at"] = datetime.utcnow().isoformat()
         
         result = supabase.table(TABLE_NAME).update(data).eq("id", str(student_id)).execute()
@@ -193,10 +181,11 @@ async def update_student(student_id: UUID, student: StudentUpdate):
         if not result.data:
             raise HTTPException(status_code=500, detail="Failed to update student")
         
-        return transform_db_to_response(result.data[0])
+        return result.data[0]
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Error updating student: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to update student: {str(e)}")
 
 
@@ -227,6 +216,7 @@ async def delete_student(student_id: UUID, hard_delete: bool = False):
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Error deleting student: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to delete student: {str(e)}")
 
 
@@ -244,9 +234,19 @@ async def upload_student_photo(student_id: UUID, file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail="Invalid file type. Allowed: JPEG, PNG, WebP")
         
         # Check if student exists
-        existing = supabase.table(TABLE_NAME).select("id").eq("id", str(student_id)).single().execute()
+        existing = supabase.table(TABLE_NAME).select("id, photo_url").eq("id", str(student_id)).single().execute()
         if not existing.data:
             raise HTTPException(status_code=404, detail="Student not found")
+        
+        # Delete old photo if exists
+        old_photo_url = existing.data.get("photo_url")
+        if old_photo_url:
+            try:
+                old_path = old_photo_url.split("/photos/")[-1] if "/photos/" in old_photo_url else None
+                if old_path:
+                    supabase.storage.from_("photos").remove([old_path])
+            except Exception as del_err:
+                logger.warning(f"Could not delete old photo: {del_err}")
         
         # Read file content
         content = await file.read()
@@ -256,7 +256,7 @@ async def upload_student_photo(student_id: UUID, file: UploadFile = File(...)):
         file_path = f"students/{student_id}.{file_ext}"
         
         # Upload file
-        storage_result = supabase.storage.from_("photos").upload(
+        supabase.storage.from_("photos").upload(
             file_path,
             content,
             {"content-type": file.content_type, "upsert": "true"}
@@ -275,4 +275,5 @@ async def upload_student_photo(student_id: UUID, file: UploadFile = File(...)):
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Error uploading photo: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to upload photo: {str(e)}")

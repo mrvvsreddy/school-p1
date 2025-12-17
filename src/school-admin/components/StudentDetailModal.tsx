@@ -12,12 +12,13 @@ interface ExamResult {
 
 interface StudentDetailModalProps {
     student: Student;
+    className?: string; // Display name like "6-A"
     onClose: () => void;
     onEdit: () => void;
     onDelete?: () => void;
 }
 
-export default function StudentDetailModal({ student, onClose, onEdit, onDelete }: StudentDetailModalProps) {
+export default function StudentDetailModal({ student, className, onClose, onEdit, onDelete }: StudentDetailModalProps) {
     const [activeTab, setActiveTab] = useState<"Profile" | "Attendance" | "Exams">("Profile");
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -121,7 +122,7 @@ export default function StudentDetailModal({ student, onClose, onEdit, onDelete 
                         <div>
                             <h2 className="text-xl font-bold text-gray-900">{student.name}</h2>
                             <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                                <span>Class {student.class}</span>
+                                <span>Class {className || student.class_id?.slice(0, 8) || "N/A"}</span>
                                 <span className="w-1 h-1 rounded-full bg-gray-300"></span>
                                 <span>Roll #{student.roll_no}</span>
                                 <span className="w-1 h-1 rounded-full bg-gray-300"></span>

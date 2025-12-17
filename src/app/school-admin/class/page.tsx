@@ -171,16 +171,7 @@ export default function ClassesPage() {
                                             {cls.class_teacher_name || "Not Assigned"}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-600">
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-semibold text-gray-900">{cls.students_count || 0}</span>
-                                                <span className="text-gray-400">/ {cls.capacity}</span>
-                                                <div className="w-16 h-1.5 bg-gray-100 rounded-full ml-2">
-                                                    <div
-                                                        className="h-full bg-[#C4A35A] rounded-full"
-                                                        style={{ width: `${Math.min(100, ((cls.students_count || 0) / cls.capacity) * 100)}%` }}
-                                                    ></div>
-                                                </div>
-                                            </div>
+                                            <span className="font-semibold text-gray-900">{cls.students_count || 0}</span>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-600 font-medium">
                                             {cls.room || "N/A"}
