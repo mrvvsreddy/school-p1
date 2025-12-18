@@ -126,7 +126,7 @@ export default function ApplyPage() {
 
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-            const response = await fetch(`${apiUrl}/api/admin/admissions/apply`, {
+            const response = await fetch(`${apiUrl}/api/applications`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -135,9 +135,8 @@ export default function ApplyPage() {
                     student_name: formValues.studentName || "",
                     parent_name: formValues.parentName || "",
                     email: formValues.email || "",
-                    dial_code: dialCode,
-                    phone: formValues.phone || "",
-                    class_applying: formValues.classApplying || "",
+                    phone: `${dialCode} ${formValues.phone || ""}`,
+                    grade_applying: `Class ${formValues.classApplying}` || "",
                 }),
             });
 

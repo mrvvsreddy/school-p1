@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import Image from "next/image";
+import MediaView from "@/components/MediaView";
 
 interface Activity {
     title: string;
@@ -144,11 +144,10 @@ export default function ActivitiesPage() {
                                 <div className={index % 2 === 1 ? 'md:order-2' : ''}>
                                     <div className="relative h-80 rounded-2xl overflow-hidden shadow-lg">
                                         {activity.image && (
-                                            <Image
+                                            <MediaView
                                                 src={activity.image}
                                                 alt={activity.title}
-                                                fill
-                                                className="object-cover"
+                                                containerClassName="w-full h-full"
                                             />
                                         )}
                                     </div>

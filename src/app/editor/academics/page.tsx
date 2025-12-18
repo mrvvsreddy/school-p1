@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import Image from "next/image";
+import MediaUpload from "@/editor/components/MediaUpload";
 
 // --- Types ---
 interface Grade {
@@ -68,9 +68,7 @@ export default function AcademicsEditorPage() {
     const [showPreview, setShowPreview] = useState(true);
     const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
 
-    // Upload state
-    const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
-    const gradeFileInputs = useRef<(HTMLInputElement | null)[]>([]);
+    // Upload state removed - using MediaUpload component
 
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const fullscreenIframeRef = useRef<HTMLIFrameElement>(null);
@@ -150,31 +148,7 @@ export default function AcademicsEditorPage() {
         }
     };
 
-    const handleImageUpload = async (file: File, index: number) => {
-        const formData = new FormData();
-        formData.append('file', file);
-        const key = `grade-${index}`;
-        setUploading(prev => ({ ...prev, [key]: true }));
 
-        try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-            const res = await fetch(`${apiUrl}/api/editor/upload`, {
-                method: 'POST',
-                body: formData
-            });
-            if (!res.ok) throw new Error('Upload failed');
-            const { url } = await res.json();
-
-            const newGrades = [...data.grades];
-            newGrades[index].image = url;
-            setData({ ...data, grades: newGrades });
-        } catch (error) {
-            console.error('Upload error:', error);
-            alert('Failed to upload image');
-        } finally {
-            setUploading(prev => ({ ...prev, [key]: false }));
-        }
-    };
 
     // --- Helpers for Arrays ---
 
@@ -396,35 +370,11 @@ export default function AcademicsEditorPage() {
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Image</label>
-                                            <div className="flex items-center gap-4">
-                                                <div className="relative w-24 h-16 bg-gray-200 rounded-lg overflow-hidden shrink-0">
-                                                    {grade.image ? (
-                                                        <Image src={grade.image} alt="Preview" className="w-full h-full object-cover" fill style={{ objectFit: 'cover' }} />
-                                                    ) : (
-                                                        <div className="flex items-center justify-center h-full text-xs text-gray-400">No Image</div>
-                                                    )}
-                                                </div>
-                                                <input
-                                                    type="file"
-                                                    ref={el => { gradeFileInputs.current[i] = el }}
-                                                    className="hidden"
-                                                    accept="image/*"
-                                                    onChange={(e) => {
-                                                        const file = e.target.files?.[0];
-                                                        if (file) handleImageUpload(file, i);
-                                                    }}
-                                                />
-                                                <button
-                                                    onClick={() => gradeFileInputs.current[i]?.click()}
-                                                    disabled={uploading[`grade-${i}`]}
-                                                    className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
-                                                >
-                                                    {uploading[`grade-${i}`] ? "Uploading..." : "Upload Image"}
-                                                </button>
-                                            </div>
-                                        </div>
+                                        <MediaUpload
+                                            value={grade.image}
+                                            onChange={(url) => updateGrade(i, "image", url)}
+                                            label="Image / Video"
+                                        />
                                     </div>
                                 ))}
                             </div>

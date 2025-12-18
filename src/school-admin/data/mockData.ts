@@ -341,10 +341,76 @@ export const classes = [
 ];
 
 export const upcomingExams = [
-    { id: 1, subject: "Mathematics", class: "10th", date: "15 Feb, 2023", time: "10:00 AM" },
-    { id: 2, subject: "English", class: "10th", date: "17 Feb, 2023", time: "10:00 AM" },
-    { id: 3, subject: "Science", class: "9th", date: "18 Feb, 2023", time: "10:00 AM" },
-    { id: 4, subject: "Social Science", class: "9th", date: "20 Feb, 2023", time: "10:00 AM" },
+    {
+        id: 1,
+        subject: "Mathematics",
+        grade: "Grade 10-A",
+        academicYear: "2024-2025",
+        date: "Oct 24, 2024",
+        startTime: "09:00 AM",
+        endTime: "11:00 AM",
+        duration: "2 hrs",
+        location: "Main Hall B",
+        status: "Upcoming",
+        participants: 28,
+        color: "#3B82F6" // blue
+    },
+    {
+        id: 2,
+        subject: "Physics Mid-Term",
+        grade: "Grade 11-B",
+        academicYear: "2024-2025",
+        date: "Oct 20, 2024",
+        startTime: "10:30 AM",
+        endTime: "12:30 PM",
+        duration: "2 hrs",
+        location: "Lab 304",
+        status: "Grading in Progress",
+        participants: 32,
+        color: "#14B8A6" // teal
+    },
+    {
+        id: 3,
+        subject: "English Lit.",
+        grade: "Grade 9-C",
+        academicYear: "2024-2025",
+        date: "Nov 02, 2024",
+        startTime: "08:30 AM",
+        endTime: "10:00 AM",
+        duration: "1.5 hrs",
+        location: "Room 101",
+        status: "Draft",
+        participants: 0,
+        color: "#8B5CF6" // purple
+    },
+    {
+        id: 4,
+        subject: "History Final",
+        grade: "Grade 10-A",
+        academicYear: "2023-2024",
+        date: "Oct 15, 2024",
+        startTime: "1:00 PM",
+        endTime: "3:00 PM",
+        duration: "2 hrs",
+        location: "",
+        status: "Completed",
+        participants: 30,
+        color: "#EF4444" // red
+    },
+    {
+        id: 5,
+        subject: "Biology Quiz",
+        grade: "Grade 11-A",
+        academicYear: "2024-2025",
+        date: "Oct 26, 2024",
+        startTime: "09:00 AM",
+        endTime: "10:00 AM",
+        duration: "1 hr",
+        location: "Classroom 4B",
+        status: "Upcoming",
+        participants: 32,
+        color: "#22C55E" // green
+    },
 ];
 
 export const transportRoutes = [

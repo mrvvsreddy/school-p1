@@ -92,7 +92,8 @@ async def login(request: LoginRequest, response: Response):
             "id": user["id"],
             "email": user["email"],
             "name": user["name"],
-            "role": user["role"]
+            "role": user["role"],
+            "image_url": user.get("image_url")
         }
         
         return AuthResponse(
@@ -119,8 +120,31 @@ async def logout(response: Response):
 async def get_me(current_user: TokenData = Depends(get_current_user)):
     """
     Get current logged-in user from JWT token
-    Requires valid JWT token in Authorization header
+    Fetches full user data from database including image
     """
+    db = get_supabase()
+    
+    try:
+        # Fetch full user data from database
+        user_result = db.table("admin_users").select("id, email, name, role, image_url, status").eq("email", current_user.email).single().execute()
+        
+        if user_result.data:
+            user = user_result.data
+            return {
+                "authenticated": True,
+                "user": {
+                    "id": user["id"],
+                    "email": user["email"],
+                    "name": user["name"],
+                    "role": user["role"],
+                    "image_url": user.get("image_url"),
+                    "status": user.get("status")
+                }
+            }
+    except Exception as e:
+        logger.warning(f"Could not fetch full user data: {e}")
+    
+    # Fallback to token data
     return {
         "authenticated": True,
         "user": {

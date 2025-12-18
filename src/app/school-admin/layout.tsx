@@ -7,9 +7,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <AuthGuard requiredRole="admin">
             <div className="min-h-screen bg-[#F8F9FA]">
                 <AdminSidebar />
-                <div className="ml-64">
+                <div className="ml-52">
                     <AdminHeader />
-                    <main className="p-6">{children}</main>
+                    <main className="p-4">{children}</main>
                 </div>
             </div>
         </AuthGuard>

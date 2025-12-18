@@ -84,6 +84,39 @@ except ImportError as e:
     print(f"Warning: Classes module not loaded: {e}")
     CLASSES_MODULE_LOADED = False
 
+# Import exams module
+try:
+    from exams import exams_router
+    EXAMS_MODULE_LOADED = True
+except ImportError as e:
+    print(f"Warning: Exams module not loaded: {e}")
+    EXAMS_MODULE_LOADED = False
+
+# Import storage module
+try:
+    from storage import storage_router
+    STORAGE_MODULE_LOADED = True
+except ImportError as e:
+    print(f"Warning: Storage module not loaded: {e}")
+    STORAGE_MODULE_LOADED = False
+
+# Import applications module
+try:
+    from applications import applications_router
+    APPLICATIONS_MODULE_LOADED = True
+except ImportError as e:
+    print(f"Warning: Applications module not loaded: {e}")
+    APPLICATIONS_MODULE_LOADED = False
+
+# Import contacts module
+try:
+    from contacts import contacts_router
+    CONTACTS_MODULE_LOADED = True
+except ImportError as e:
+    print(f"Warning: Contacts module not loaded: {e}")
+    CONTACTS_MODULE_LOADED = False
+
+
 # NEW TABLE NAME
 TABLE_NAME = "site_pages_content"
 
@@ -180,6 +213,27 @@ if TEACHERS_MODULE_LOADED:
 if CLASSES_MODULE_LOADED:
     app.include_router(classes_router)
     print("INFO:     Classes routes registered")
+
+# Include exams router if loaded
+if EXAMS_MODULE_LOADED:
+    app.include_router(exams_router)
+    print("INFO:     Exams routes registered")
+
+# Include storage router if loaded
+if STORAGE_MODULE_LOADED:
+    app.include_router(storage_router)
+    print("INFO:     Storage routes registered")
+
+# Include applications router if loaded
+if APPLICATIONS_MODULE_LOADED:
+    app.include_router(applications_router)
+    print("INFO:     Applications routes registered")
+
+# Include contacts router if loaded
+if CONTACTS_MODULE_LOADED:
+    app.include_router(contacts_router)
+    print("INFO:     Contacts routes registered")
+
 
 # Configure CORS - only allow origins from environment variable
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "localhost:3000")

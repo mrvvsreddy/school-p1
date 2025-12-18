@@ -69,10 +69,40 @@ export default function ContactPage() {
         setFormData({ ...formData, phone, dialCode });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [submitting, setSubmitting] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Handle form submission
-        alert("Thank you for your message! We will get back to you soon.");
+        setSubmitting(true);
+
+        try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const res = await fetch(`${apiUrl}/api/contacts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: formData.name,
+                    email: formData.email,
+                    dial_code: formData.dialCode,
+                    phone: formData.phone,
+                    subject: formData.subject,
+                    message: formData.message
+                })
+            });
+
+            if (res.ok) {
+                setSubmitted(true);
+                setFormData({ name: "", email: "", phone: "", dialCode: "+91", subject: "", message: "" });
+            } else {
+                alert("Failed to submit. Please try again.");
+            }
+        } catch (error) {
+            console.error("Submit error:", error);
+            alert("Failed to submit. Please try again.");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -247,10 +277,16 @@ export default function ContactPage() {
                                     </div>
                                     <button
                                         type="submit"
-                                        className="w-full bg-[#C4A35A] text-white py-3 rounded-lg font-semibold hover:bg-[#A38842] transition-colors"
+                                        disabled={submitting || submitted}
+                                        className={`w-full py-3 rounded-lg font-semibold transition-colors ${submitted
+                                            ? "bg-green-500 text-white cursor-default"
+                                            : "bg-[#C4A35A] text-white hover:bg-[#A38842]"} ${submitting ? "opacity-70 cursor-wait" : ""}`}
                                     >
-                                        Send Message
+                                        {submitted ? "✓ Message Sent!" : submitting ? "Sending..." : "Send Message"}
                                     </button>
+                                    {submitted && (
+                                        <p className="text-green-600 text-sm text-center mt-2">Thank you! We will get back to you soon.</p>
+                                    )}
                                 </form>
                             </div>
                         </motion.div>

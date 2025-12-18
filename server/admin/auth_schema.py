@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS admin_users (
     name VARCHAR(255) NOT NULL,
     role VARCHAR(50) DEFAULT 'admin',
     status VARCHAR(20) DEFAULT 'active',
+    image_url TEXT,
     last_login TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

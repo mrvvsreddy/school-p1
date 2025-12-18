@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import Image from "next/image";
+import MediaView from "@/components/MediaView";
 
 
 interface Facility {
@@ -24,11 +24,10 @@ const FacilityCard = ({ facility, index }: { facility: Facility; index: number }
     >
         <div className={index % 2 === 1 ? 'md:order-2' : ''}>
             <div className="relative h-80 rounded-2xl overflow-hidden shadow-lg">
-                <Image
+                <MediaView
                     src={facility.image}
                     alt={facility.title}
-                    fill
-                    className="object-cover"
+                    containerClassName="w-full h-full"
                 />
             </div>
         </div>
