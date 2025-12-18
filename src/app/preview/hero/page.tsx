@@ -55,7 +55,7 @@ export default function HeroPreviewPage() {
     const visibleButtons = buttons.filter(btn => btn.visible);
 
     return (
-        <section className="relative h-screen min-h-[500px] overflow-hidden bg-[#1a1a1a]">
+        <section className="relative min-h-[100dvh] h-screen overflow-hidden bg-[#1a1a1a]">
             {slides.map((slide, index) => (
                 <motion.div
                     key={slide.id || index}
@@ -74,14 +74,14 @@ export default function HeroPreviewPage() {
                 </motion.div>
             ))}
 
-            <div className="relative z-20 h-full flex items-center justify-center text-center px-6">
-                <div className="max-w-4xl">
+            <div className="relative z-20 h-full flex items-center justify-center text-center px-4 sm:px-6 py-16 sm:py-20">
+                <div className="max-w-4xl w-full">
                     <motion.h1
                         key={`title-${currentSlide}`}
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
-                        className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight"
+                        className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight px-2"
                         style={{ fontFamily: "var(--font-playfair)" }}
                     >
                         {slides[currentSlide]?.title || "Title"}
@@ -92,7 +92,7 @@ export default function HeroPreviewPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.1 }}
-                        className="text-white/90 text-base md:text-lg max-w-2xl mx-auto mb-10"
+                        className="text-white/90 text-sm sm:text-base md:text-lg max-w-2xl mx-auto mb-6 sm:mb-10 px-2"
                     >
                         {slides[currentSlide]?.subtitle || "Subtitle"}
                     </motion.p>
@@ -108,7 +108,7 @@ export default function HeroPreviewPage() {
                                 <Link
                                     key={btn.id}
                                     href={btn.url || "#"}
-                                    className="inline-block px-8 py-3 text-white font-semibold rounded hover:opacity-90 transition-opacity"
+                                    className="inline-block px-6 py-2.5 sm:px-8 sm:py-3 text-sm sm:text-base text-white font-semibold rounded hover:opacity-90 transition-opacity"
                                     style={{ backgroundColor: btn.color }}
                                 >
                                     {btn.text}
@@ -120,18 +120,18 @@ export default function HeroPreviewPage() {
             </div>
 
             {slides.length > 1 && (
-                <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 z-20 flex gap-3">
+                <div className="absolute bottom-12 sm:bottom-16 left-1/2 transform -translate-x-1/2 z-20 flex gap-2 sm:gap-3">
                     {slides.map((_, index) => (
                         <button
                             key={index}
                             onClick={() => setCurrentSlide(index)}
-                            className={`h-3 rounded-full transition-all duration-300 ${index === currentSlide ? "bg-[#C4A35A] w-8" : "bg-white/50 w-3"}`}
+                            className={`h-2 sm:h-3 rounded-full transition-all duration-300 ${index === currentSlide ? "bg-[#C4A35A] w-6 sm:w-8" : "bg-white/50 w-2 sm:w-3"}`}
                         />
                     ))}
                 </div>
             )}
 
-            <div className="absolute bottom-4 right-4 z-20 text-white/60 text-sm font-medium">
+            <div className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 z-20 text-white/60 text-xs sm:text-sm font-medium">
                 <span className="text-white">{String(currentSlide + 1).padStart(2, '0')}</span>
                 <span className="mx-1">/</span>
                 <span>{String(slides.length).padStart(2, '0')}</span>
