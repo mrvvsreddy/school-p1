@@ -1,16 +1,23 @@
 """
 Applications API Router
 CRUD operations for student admission applications
-Uses applications table created by setup script
+POST (create) is public, other operations require authentication
 """
 import os
+import re
 import uuid
 import logging
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from supabase import create_client, Client
+
+# Import authentication utilities
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from admin.auth_utils import get_current_user, require_admin, TokenData
+from security import check_rate_limit
 
 from .schemas import (
     ApplicationCreate,
@@ -39,10 +46,22 @@ def check_supabase():
         raise HTTPException(status_code=503, detail="Database not connected")
 
 
-@applications_router.get("/stats")
-async def get_application_stats():
+def sanitize_search(search: str) -> str:
     """
-    Get count of pending applications for sidebar indicator
+    Sanitize search parameter to prevent SQL injection via PostgREST
+    """
+    if not search:
+        return ""
+    sanitized = re.sub(r'[^\w\s\-@.]', '', search)
+    return sanitized.strip()
+
+
+@applications_router.get("/stats")
+async def get_application_stats(
+    current_user: TokenData = Depends(get_current_user)
+):
+    """
+    Get count of pending applications (requires authentication)
     """
     check_supabase()
     
@@ -61,9 +80,10 @@ async def list_applications(
     status: Optional[str] = Query(None),
     grade: Optional[str] = Query(None),
     search: Optional[str] = None,
+    current_user: TokenData = Depends(get_current_user)
 ):
     """
-    List all applications with optional filtering and pagination
+    List all applications (requires authentication)
     """
     check_supabase()
     
@@ -76,10 +96,16 @@ async def list_applications(
             query = query.eq("status", status)
         
         if grade:
-            query = query.ilike("grade_applying", f"%{grade}%")
+            # Sanitize grade parameter
+            safe_grade = sanitize_search(grade)
+            if safe_grade:
+                query = query.ilike("grade_applying", f"%{safe_grade}%")
         
         if search:
-            query = query.or_(f"student_name.ilike.%{search}%,parent_name.ilike.%{search}%,email.ilike.%{search}%")
+            # Sanitize search parameter
+            safe_search = sanitize_search(search)
+            if safe_search:
+                query = query.or_(f"student_name.ilike.%{safe_search}%,parent_name.ilike.%{safe_search}%,email.ilike.%{safe_search}%")
         
         # Apply pagination
         offset = (page - 1) * page_size
@@ -157,10 +183,13 @@ async def get_application(application_id: str):
 
 
 @applications_router.post("", response_model=ApplicationResponse, status_code=201)
-async def create_application(application: ApplicationCreate):
+async def create_application(application: ApplicationCreate, request: Request):
     """
-    Create a new application
+    Create a new application (PUBLIC endpoint - rate limited to 10/min)
     """
+    # Rate limit public form submissions
+    check_rate_limit(request, "public_form")
+    
     check_supabase()
     
     try:

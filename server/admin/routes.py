@@ -1,13 +1,18 @@
 """
 School Admin API Routes
 FastAPI routes for all admin operations
+All routes require authentication
 """
 
+import re
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from datetime import date, time, datetime
 from decimal import Decimal
+
+# Import authentication utilities
+from .auth_utils import get_current_user, require_admin, TokenData
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -68,6 +73,20 @@ class TeacherBase(BaseModel):
 class TeacherCreate(TeacherBase):
     pass
 
+
+class TeacherUpdate(BaseModel):
+    """Model for updating teacher - only includes updatable fields"""
+    name: Optional[str] = None
+    subject: Optional[str] = None
+    qualification: Optional[str] = None
+    experience: Optional[int] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
+    salary: Optional[Decimal] = None
+    status: Optional[str] = None
+    photo_url: Optional[str] = None
+
 # Class Models
 class ClassBase(BaseModel):
     class_name: str
@@ -113,6 +132,17 @@ class NoticeBase(BaseModel):
 class NoticeCreate(NoticeBase):
     pass
 
+
+class NoticeUpdate(BaseModel):
+    """Model for updating notice"""
+    title: Optional[str] = None
+    content: Optional[str] = None
+    category: Optional[str] = None
+    priority: Optional[str] = None
+    target_audience: Optional[str] = None
+    expiry_date: Optional[date] = None
+    status: Optional[str] = None
+
 # Admission Application Models
 class AdmissionApplicationCreate(BaseModel):
     student_name: str
@@ -133,15 +163,30 @@ def get_supabase():
         raise HTTPException(status_code=500, detail="Database not configured")
     return supabase
 
+
+def sanitize_search(search: str) -> str:
+    """
+    Sanitize search parameter to prevent SQL injection via PostgREST
+    Removes special characters that could manipulate queries
+    """
+    if not search:
+        return ""
+    # Remove characters that could be used for injection in PostgREST
+    # Allow only alphanumeric, spaces, and common safe characters
+    sanitized = re.sub(r'[^\w\s\-@.]', '', search)
+    return sanitized.strip()
+
+
 # ============= STUDENT ROUTES =============
 
 @router.get("/students")
 async def get_students(
     class_name: Optional[str] = None,
     status: Optional[str] = None,
-    search: Optional[str] = None
+    search: Optional[str] = None,
+    current_user: TokenData = Depends(get_current_user)
 ):
-    """Get all students with optional filters"""
+    """Get all students with optional filters (requires authentication)"""
     db = get_supabase()
     
     query = db.table("students").select("*")
@@ -151,14 +196,20 @@ async def get_students(
     if status:
         query = query.eq("status", status)
     if search:
-        query = query.or_(f"name.ilike.%{search}%,student_id.ilike.%{search}%")
+        # Sanitize search to prevent injection
+        safe_search = sanitize_search(search)
+        if safe_search:
+            query = query.or_(f"name.ilike.%{safe_search}%,student_id.ilike.%{safe_search}%")
     
     result = query.order("name").execute()
     return {"students": result.data}
 
 @router.post("/students")
-async def create_student(student: StudentCreate):
-    """Create a new student"""
+async def create_student(
+    student: StudentCreate,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Create a new student (requires authentication)"""
     db = get_supabase()
     
     student_dict = student.model_dump()
@@ -168,8 +219,11 @@ async def create_student(student: StudentCreate):
     return {"success": True, "student": result.data[0]}
 
 @router.get("/students/{student_id}")
-async def get_student(student_id: int):
-    """Get a specific student by ID"""
+async def get_student(
+    student_id: int,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Get a specific student by ID (requires authentication)"""
     db = get_supabase()
     
     result = db.table("students").select("*").eq("id", student_id).execute()
@@ -179,8 +233,12 @@ async def get_student(student_id: int):
     return result.data[0]
 
 @router.put("/students/{student_id}")
-async def update_student(student_id: int, student: StudentUpdate):
-    """Update a student"""
+async def update_student(
+    student_id: int,
+    student: StudentUpdate,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update a student (requires authentication)"""
     db = get_supabase()
     
     update_data = {k: v for k, v in student.model_dump().items() if v is not None}
@@ -191,8 +249,11 @@ async def update_student(student_id: int, student: StudentUpdate):
     return {"success": True, "student": result.data[0]}
 
 @router.delete("/students/{student_id}")
-async def delete_student(student_id: int):
-    """Delete a student"""
+async def delete_student(
+    student_id: int,
+    current_user: TokenData = Depends(require_admin)
+):
+    """Delete a student (requires admin role)"""
     db = get_supabase()
     
     db.table("students").delete().eq("id", student_id).execute()
@@ -201,8 +262,12 @@ async def delete_student(student_id: int):
 # ============= TEACHER ROUTES =============
 
 @router.get("/teachers")
-async def get_teachers(subject: Optional[str] = None, status: Optional[str] = None):
-    """Get all teachers"""
+async def get_teachers(
+    subject: Optional[str] = None,
+    status: Optional[str] = None,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Get all teachers (requires authentication)"""
     db = get_supabase()
     
     query = db.table("teachers").select("*")
@@ -216,24 +281,35 @@ async def get_teachers(subject: Optional[str] = None, status: Optional[str] = No
     return {"teachers": result.data}
 
 @router.post("/teachers")
-async def create_teacher(teacher: TeacherCreate):
-    """Create a new teacher"""
+async def create_teacher(
+    teacher: TeacherCreate,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Create a new teacher (requires authentication)"""
     db = get_supabase()
     
     result = db.table("teachers").insert(teacher.model_dump()).execute()
     return {"success": True, "teacher": result.data[0]}
 
 @router.put("/teachers/{teacher_id}")
-async def update_teacher(teacher_id: int, teacher: dict):
-    """Update a teacher"""
+async def update_teacher(
+    teacher_id: int,
+    teacher: TeacherUpdate,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update a teacher (requires authentication)"""
     db = get_supabase()
     
-    result = db.table("teachers").update(teacher).eq("id", teacher_id).execute()
+    update_data = {k: v for k, v in teacher.model_dump().items() if v is not None}
+    result = db.table("teachers").update(update_data).eq("id", teacher_id).execute()
     return {"success": True, "teacher": result.data[0]}
 
 @router.delete("/teachers/{teacher_id}")
-async def delete_teacher(teacher_id: int):
-    """Delete a teacher"""
+async def delete_teacher(
+    teacher_id: int,
+    current_user: TokenData = Depends(require_admin)
+):
+    """Delete a teacher (requires admin role)"""
     db = get_supabase()
     
     db.table("teachers").delete().eq("id", teacher_id).execute()
@@ -242,16 +318,21 @@ async def delete_teacher(teacher_id: int):
 # ============= CLASS ROUTES =============
 
 @router.get("/classes")
-async def get_classes():
-    """Get all classes"""
+async def get_classes(
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Get all classes (requires authentication)"""
     db = get_supabase()
     
     result = db.table("classes").select("*").execute()
     return {"classes": result.data}
 
 @router.post("/classes")
-async def create_class(class_data: ClassCreate):
-    """Create a new class"""
+async def create_class(
+    class_data: ClassCreate,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Create a new class (requires authentication)"""
     db = get_supabase()
     
     result = db.table("classes").insert(class_data.model_dump()).execute()
@@ -260,8 +341,11 @@ async def create_class(class_data: ClassCreate):
 # ============= EXAM ROUTES =============
 
 @router.get("/exams")
-async def get_exams(class_name: Optional[str] = None):
-    """Get all exams"""
+async def get_exams(
+    class_name: Optional[str] = None,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Get all exams (requires authentication)"""
     db = get_supabase()
     
     query = db.table("exams").select("*")
@@ -272,8 +356,11 @@ async def get_exams(class_name: Optional[str] = None):
     return {"exams": result.data}
 
 @router.post("/exams")
-async def create_exam(exam: ExamCreate):
-    """Create a new exam"""
+async def create_exam(
+    exam: ExamCreate,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Create a new exam (requires authentication)"""
     db = get_supabase()
     
     exam_dict = exam.model_dump()
@@ -285,8 +372,11 @@ async def create_exam(exam: ExamCreate):
 # ============= NOTICE ROUTES =============
 
 @router.get("/notices")
-async def get_notices(status: Optional[str] = None):
-    """Get all notices"""
+async def get_notices(
+    status: Optional[str] = None,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Get all notices (requires authentication)"""
     db = get_supabase()
     
     query = db.table("notices").select("*")
@@ -297,26 +387,37 @@ async def get_notices(status: Optional[str] = None):
     return {"notices": result.data}
 
 @router.post("/notices")
-async def create_notice(notice: NoticeCreate):
-    """Create a new notice"""
+async def create_notice(
+    notice: NoticeCreate,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Create a new notice (requires authentication)"""
     db = get_supabase()
     
     result = db.table("notices").insert(notice.model_dump()).execute()
     return {"success": True, "notice": result.data[0]}
 
 @router.put("/notices/{notice_id}")
-async def update_notice(notice_id: int, notice: dict):
-    """Update a notice"""
+async def update_notice(
+    notice_id: int,
+    notice: NoticeUpdate,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update a notice (requires authentication)"""
     db = get_supabase()
     
-    result = db.table("notices").update(notice).eq("id", notice_id).execute()
+    update_data = {k: v for k, v in notice.model_dump().items() if v is not None}
+    result = db.table("notices").update(update_data).eq("id", notice_id).execute()
     return {"success": True, "notice": result.data[0]}
 
 # ============= SETTINGS ROUTES =============
 
 @router.get("/settings")
-async def get_settings(category: Optional[str] = None):
-    """Get all settings"""
+async def get_settings(
+    category: Optional[str] = None,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Get all settings (requires authentication)"""
     db = get_supabase()
     
     query = db.table("school_settings").select("*")
@@ -327,8 +428,12 @@ async def get_settings(category: Optional[str] = None):
     return {"settings": result.data}
 
 @router.put("/settings/{setting_key}")
-async def update_setting(setting_key: str, value: dict):
-    """Update a setting"""
+async def update_setting(
+    setting_key: str,
+    value: dict,
+    current_user: TokenData = Depends(require_admin)
+):
+    """Update a setting (requires admin role)"""
     db = get_supabase()
     
     result = db.table("school_settings").upsert({
@@ -351,9 +456,10 @@ def generate_application_id():
 @router.get("/admissions/applications")
 async def get_admission_applications(
     status: Optional[str] = None,
-    class_applying: Optional[str] = None
+    class_applying: Optional[str] = None,
+    current_user: TokenData = Depends(get_current_user)
 ):
-    """Get all admission applications (for admin view)"""
+    """Get all admission applications (requires authentication)"""
     db = get_supabase()
     
     query = db.table("admission_applications").select("*")
@@ -368,7 +474,10 @@ async def get_admission_applications(
 
 @router.post("/admissions/apply")
 async def submit_admission_application(application: AdmissionApplicationCreate):
-    """Submit a new admission application (public endpoint)"""
+    """
+    Submit a new admission application (PUBLIC endpoint - no auth required)
+    This allows prospective parents/students to apply.
+    """
     db = get_supabase()
     
     # Generate unique application ID
@@ -389,8 +498,11 @@ async def submit_admission_application(application: AdmissionApplicationCreate):
     }
 
 @router.get("/admissions/applications/{app_id}")
-async def get_admission_application(app_id: int):
-    """Get a specific admission application"""
+async def get_admission_application(
+    app_id: int,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Get a specific admission application (requires authentication)"""
     db = get_supabase()
     
     result = db.table("admission_applications").select("*").eq("id", app_id).execute()
@@ -400,8 +512,12 @@ async def get_admission_application(app_id: int):
     return result.data[0]
 
 @router.put("/admissions/applications/{app_id}")
-async def update_admission_application(app_id: int, update: AdmissionApplicationUpdate):
-    """Update admission application status/notes (admin only)"""
+async def update_admission_application(
+    app_id: int,
+    update: AdmissionApplicationUpdate,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Update admission application status/notes (requires authentication)"""
     db = get_supabase()
     
     update_data = {k: v for k, v in update.model_dump().items() if v is not None}
@@ -415,8 +531,11 @@ async def update_admission_application(app_id: int, update: AdmissionApplication
     return {"success": True, "application": result.data[0]}
 
 @router.delete("/admissions/applications/{app_id}")
-async def delete_admission_application(app_id: int):
-    """Delete an admission application"""
+async def delete_admission_application(
+    app_id: int,
+    current_user: TokenData = Depends(require_admin)
+):
+    """Delete an admission application (requires admin role)"""
     db = get_supabase()
     
     db.table("admission_applications").delete().eq("id", app_id).execute()

@@ -1,10 +1,11 @@
 """
 JWT Authentication Utilities
-Handles token creation, verification, and user authentication
+Handles token creation, verification, user authentication, and password hashing
 """
 
 import os
 import logging
+import bcrypt
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt, ExpiredSignatureError
@@ -15,8 +16,12 @@ from pydantic import BaseModel
 # Configure logger
 logger = logging.getLogger(__name__)
 
-# JWT Configuration
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-this-in-production")
+# JWT Configuration - FAIL if not set (no insecure defaults)
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+if not SECRET_KEY:
+    logger.warning("JWT_SECRET_KEY not set! Authentication will fail. Set this in your .env file.")
+    SECRET_KEY = None  # Will cause auth to fail safely
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 420  # 7 hours
 
@@ -28,6 +33,45 @@ class TokenData(BaseModel):
     role: str
     exp: datetime
 
+
+# ============= PASSWORD UTILITIES =============
+
+def hash_password(password: str) -> str:
+    """
+    Hash a password using bcrypt
+    
+    Args:
+        password: Plain text password
+        
+    Returns:
+        Hashed password string
+    """
+    # Encode password to bytes, hash it, and return as string
+    password_bytes = password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    return hashed.decode('utf-8')
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """
+    Verify a password against its hash
+    
+    Args:
+        plain_password: Plain text password to verify
+        hashed_password: Stored password hash
+        
+    Returns:
+        True if password matches, False otherwise
+    """
+    try:
+        password_bytes = plain_password.encode('utf-8')
+        hashed_bytes = hashed_password.encode('utf-8')
+        return bcrypt.checkpw(password_bytes, hashed_bytes)
+    except Exception as e:
+        logger.error(f"Password verification error: {e}")
+        return False
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """
     Create a JWT access token
@@ -38,7 +82,17 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     
     Returns:
         Encoded JWT token string
+    
+    Raises:
+        HTTPException: If JWT_SECRET_KEY is not configured
     """
+    if not SECRET_KEY:
+        logger.error("JWT_SECRET_KEY not configured - cannot create tokens")
+        raise HTTPException(
+            status_code=500,
+            detail="Server authentication not configured"
+        )
+    
     to_encode = data.copy()
     
     if expires_delta:
@@ -62,8 +116,15 @@ def verify_token(token: str) -> TokenData:
         TokenData object with user information
     
     Raises:
-        HTTPException: If token is invalid or expired
+        HTTPException: If token is invalid, expired, or server not configured
     """
+    if not SECRET_KEY:
+        logger.error("JWT_SECRET_KEY not configured - cannot verify tokens")
+        raise HTTPException(
+            status_code=500,
+            detail="Server authentication not configured"
+        )
+    
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("email")
@@ -162,12 +223,5 @@ async def require_editor(current_user: TokenData = Depends(get_current_user)) ->
         )
     return current_user
 
-def decode_token_without_verification(token: str) -> dict:
-    """
-    Decode token without verification (for debugging)
-    WARNING: Do not use for authentication!
-    """
-    try:
-        return jwt.decode(token, options={"verify_signature": False})
-    except:
-        return {}
+# SECURITY: decode_token_without_verification function removed
+# It was a security risk as it could be misused to bypass signature verification

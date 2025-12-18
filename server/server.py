@@ -12,6 +12,9 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 from typing import Dict, Any, List
 
+# Import security middleware
+from security import SecurityHeadersMiddleware
+
 # Configure logging - ensure output is flushed immediately
 logging.basicConfig(
     level=logging.INFO,
@@ -259,9 +262,21 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins_list,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    # Explicit methods instead of wildcard
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    # Explicit headers instead of wildcard
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Requested-With",
+        "Cookie",
+    ],
 )
+
+# Add security headers middleware (X-Frame-Options, CSP, etc.)
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Request logging middleware
 class RequestLoggingMiddleware(BaseHTTPMiddleware):

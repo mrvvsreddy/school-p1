@@ -1,16 +1,23 @@
 """
 Authentication API Routes
 Handles admin login with JWT token generation
+Includes rate limiting and account lockout
 """
 
 import logging
-from fastapi import APIRouter, HTTPException, Depends, Response
-from pydantic import BaseModel, EmailStr
+import sys
+import os
+from fastapi import APIRouter, HTTPException, Depends, Response, Request
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
 from datetime import datetime, timedelta
 
 # Import JWT utilities
-from .auth_utils import create_access_token, get_current_user, TokenData, require_admin
+from .auth_utils import create_access_token, get_current_user, TokenData, require_admin, verify_password
+
+# Import rate limiting
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from security import check_rate_limit, record_failed_login, clear_failed_logins
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -21,6 +28,14 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 class LoginRequest(BaseModel):
     email: EmailStr
+    password: str
+    
+    @field_validator('password')
+    @classmethod
+    def password_not_empty(cls, v):
+        if not v or len(v.strip()) == 0:
+            raise ValueError('Password cannot be empty')
+        return v
 
 class AuthResponse(BaseModel):
     success: bool
@@ -40,24 +55,49 @@ def get_supabase():
 # ============= AUTH ROUTES =============
 
 @router.post("/login", response_model=AuthResponse)
-async def login(request: LoginRequest, response: Response):
+async def login(login_request: LoginRequest, request: Request, response: Response):
     """
-    Login - generates JWT token and sets secure HTTP-only cookie
+    Login - verifies credentials, generates JWT token and sets secure HTTP-only cookie
+    
+    Security features:
+        - Rate limited to 5 requests per minute per IP
+        - Account lockout after 5 failed attempts (5 minute cooldown)
+        - Password verification with bcrypt
     """
+    # Check rate limit first
+    check_rate_limit(request, "login")
+    
     db = get_supabase()
     
     try:
         # Check if user exists in database
-        user_result = db.table("admin_users").select("*").eq("email", request.email).execute()
+        user_result = db.table("admin_users").select("*").eq("email", login_request.email).execute()
         
         if not user_result.data:
-            # Security: Don't create users automatically in production
-            raise HTTPException(status_code=404, detail="User not found")
+            # Record failed attempt and check for lockout
+            if record_failed_login(request):
+                raise HTTPException(status_code=429, detail="Too many failed attempts. Please try again later.")
+            logger.warning(f"Login attempt for non-existent email: {login_request.email}")
+            raise HTTPException(status_code=401, detail="Invalid email or password")
         
         user = user_result.data[0]
         
+        # Verify password
+        password_hash = user.get("password_hash")
+        if not password_hash:
+            logger.error(f"User {login_request.email} has no password_hash set")
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        
+        if not verify_password(login_request.password, password_hash):
+            # Record failed attempt and check for lockout
+            if record_failed_login(request):
+                raise HTTPException(status_code=429, detail="Too many failed attempts. Please try again later.")
+            logger.warning(f"Invalid password attempt for: {login_request.email}")
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        
         # Check if user is active
         if user.get("status") != "active":
+            logger.warning(f"Inactive user login attempt: {login_request.email}")
             raise HTTPException(status_code=403, detail="User account is inactive")
         
         # Update last login
@@ -71,7 +111,10 @@ async def login(request: LoginRequest, response: Response):
         }
         access_token = create_access_token(token_data)
         
-        logger.info(f"Login successful for {user['email']}, token created")
+        # Clear failed login attempts on successful login
+        clear_failed_logins(request)
+        
+        logger.info(f"Login successful for {user['email']}")
         
         # Also set cookie as fallback (may not work in all browsers due to cross-origin restrictions)
         try:
@@ -99,15 +142,16 @@ async def login(request: LoginRequest, response: Response):
         return AuthResponse(
             success=True,
             message="Login successful",
-            token=access_token,  # Return token for localStorage
+            token=access_token,
             user=user_response
         )
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Login error for {request.email}: {type(e).__name__}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Login error: {type(e).__name__}: {e}")
+        # Security: Don't expose internal error details
+        raise HTTPException(status_code=500, detail="An error occurred during login")
 
 @router.post("/logout")
 async def logout(response: Response):
