@@ -69,7 +69,7 @@ export async function getTeachers(filters: TeacherFilters = {}): Promise<Teacher
 
     const url = `${API_BASE}/api/teachers${params.toString() ? '?' + params.toString() : ''}`;
 
-    const response = await fetch(url);
+    const response = await fetch(url, { credentials: 'include' });
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({ detail: 'Failed to fetch teachers' }));
@@ -83,7 +83,7 @@ export async function getTeachers(filters: TeacherFilters = {}): Promise<Teacher
  * Get a single teacher by ID
  */
 export async function getTeacher(id: string): Promise<Teacher> {
-    const response = await fetch(`${API_BASE}/api/teachers/${id}`);
+    const response = await fetch(`${API_BASE}/api/teachers/${id}`, { credentials: 'include' });
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({ detail: 'Teacher not found' }));
@@ -100,6 +100,7 @@ export async function createTeacher(teacher: Partial<Teacher>): Promise<Teacher>
     const response = await fetch(`${API_BASE}/api/teachers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(teacher),
     });
 
@@ -118,6 +119,7 @@ export async function updateTeacher(id: string, teacher: Partial<Teacher>): Prom
     const response = await fetch(`${API_BASE}/api/teachers/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(teacher),
     });
 
@@ -135,7 +137,7 @@ export async function updateTeacher(id: string, teacher: Partial<Teacher>): Prom
 export async function deleteTeacher(id: string, hardDelete: boolean = false): Promise<void> {
     const url = `${API_BASE}/api/teachers/${id}${hardDelete ? '?hard_delete=true' : ''}`;
 
-    const response = await fetch(url, { method: 'DELETE' });
+    const response = await fetch(url, { method: 'DELETE', credentials: 'include' });
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({ detail: 'Failed to delete teacher' }));
@@ -153,6 +155,7 @@ export async function uploadTeacherPhoto(id: string, file: File): Promise<{ phot
     const response = await fetch(`${API_BASE}/api/teachers/${id}/photo`, {
         method: 'POST',
         body: formData,
+        credentials: 'include',
     });
 
     if (!response.ok) {

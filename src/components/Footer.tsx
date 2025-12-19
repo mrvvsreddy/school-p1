@@ -133,17 +133,18 @@ export default function Footer({ initialData = null }: FooterProps) {
             </div>
 
             {/* Main Footer */}
-            <div className="container mx-auto px-6 py-16">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
+            <div className="container mx-auto px-6 py-10 md:py-16">
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-8 md:gap-12">
                     {/* Logo & Description */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
+
                         transition={{ duration: 0.6 }}
-                        className="lg:col-span-2"
+                        className="col-span-2 md:col-span-1 lg:col-span-2 text-center md:text-left"
                     >
-                        <div className="flex items-center gap-3 mb-6">
+                        <div className="flex items-center justify-center md:justify-start gap-3 mb-6">
                             {data.logo?.image ? (
                                 <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#C4A35A]">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -161,12 +162,12 @@ export default function Footer({ initialData = null }: FooterProps) {
                                 <p className="text-xs text-[#888] tracking-widest">{data.logo?.subtext || "SCHOOL"}</p>
                             </div>
                         </div>
-                        <p className="text-[#888] text-sm leading-relaxed mb-6 max-w-md">
+                        <p className="text-[#888] text-sm leading-relaxed mb-6 max-w-md mx-auto md:mx-0">
                             Providing quality education from Class 1 to 10 with a perfect blend of
                             academics, sports, and extracurricular activities. Building tomorrow&apos;s
                             leaders in a nurturing environment.
                         </p>
-                        <div className="flex gap-4">
+                        <div className="flex justify-center md:justify-start gap-4">
                             {socialData && socialData.map((social) => (
                                 <Link
                                     key={social.name}
@@ -185,6 +186,7 @@ export default function Footer({ initialData = null }: FooterProps) {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.1 }}
+                        className="text-center md:text-left"
                     >
                         <h4 className="text-lg font-semibold mb-6" style={{ fontFamily: "var(--font-playfair)" }}>
                             Quick Links
@@ -209,6 +211,7 @@ export default function Footer({ initialData = null }: FooterProps) {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.2 }}
+                        className="text-center md:text-left"
                     >
                         <h4 className="text-lg font-semibold mb-6" style={{ fontFamily: "var(--font-playfair)" }}>
                             Academics
@@ -233,6 +236,7 @@ export default function Footer({ initialData = null }: FooterProps) {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: 0.3 }}
+                        className="text-center md:text-left"
                     >
                         <h4 className="text-lg font-semibold mb-6" style={{ fontFamily: "var(--font-playfair)" }}>
                             Resources
@@ -255,7 +259,7 @@ export default function Footer({ initialData = null }: FooterProps) {
 
             {/* Bottom Bar */}
             <div className="border-t border-[#333]">
-                <div className="container mx-auto px-6 py-6">
+                <div className="container mx-auto px-6 py-4 md:py-6">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                         <p className="text-[#666] text-sm">
                             © {new Date().getFullYear()} Balayeasu School. All rights reserved.

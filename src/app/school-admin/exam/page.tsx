@@ -147,7 +147,7 @@ export default function ExamPage() {
     useEffect(() => {
         const fetchAcademicYears = async () => {
             try {
-                const res = await fetch(`${API_BASE}/api/exams/academic-years/list`);
+                const res = await fetch(`${API_BASE}/api/exams/academic-years/list`, { credentials: 'include' });
                 if (!res.ok) throw new Error("Failed to fetch academic years");
                 const data = await res.json();
                 setAcademicYears(data.academic_years || []);
@@ -172,7 +172,7 @@ export default function ExamPage() {
             if (selectedGrade) params.append("grade", selectedGrade);
             if (searchQuery) params.append("search", searchQuery);
 
-            const res = await fetch(`${API_BASE}/api/exams?${params.toString()}`);
+            const res = await fetch(`${API_BASE}/api/exams?${params.toString()}`, { credentials: 'include' });
             if (!res.ok) throw new Error("Failed to fetch exams");
             const data = await res.json();
             setExams(data.exams);
@@ -210,6 +210,7 @@ export default function ExamPage() {
             const res = await fetch(`${API_BASE}/api/exams`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: 'include',
                 body: JSON.stringify({
                     subject: newExamData.subject,
                     grade: newExamData.grade,
@@ -237,6 +238,7 @@ export default function ExamPage() {
             const res = await fetch(`${API_BASE}/api/exams/${updatedExam.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
+                credentials: 'include',
                 body: JSON.stringify({
                     subject: updatedExam.subject,
                     grade: updatedExam.grade,
@@ -261,7 +263,7 @@ export default function ExamPage() {
 
     const handleDuplicateExam = async (exam: Exam) => {
         try {
-            const res = await fetch(`${API_BASE}/api/exams/${exam.id}/duplicate`, { method: "POST" });
+            const res = await fetch(`${API_BASE}/api/exams/${exam.id}/duplicate`, { method: "POST", credentials: 'include' });
             if (!res.ok) throw new Error("Failed to duplicate exam");
             fetchExams();
         } catch (err) {
@@ -273,7 +275,7 @@ export default function ExamPage() {
     const handleDeleteExam = async (examId: string) => {
         if (!confirm("Delete this exam?")) return;
         try {
-            const res = await fetch(`${API_BASE}/api/exams/${examId}`, { method: "DELETE" });
+            const res = await fetch(`${API_BASE}/api/exams/${examId}`, { method: "DELETE", credentials: 'include' });
             if (!res.ok) throw new Error("Failed to delete exam");
             fetchExams();
         } catch (err) {
@@ -284,7 +286,7 @@ export default function ExamPage() {
 
     const handleMarkStatus = async (examId: string, status: ExamStatus) => {
         try {
-            const res = await fetch(`${API_BASE}/api/exams/${examId}/status?status=${status}`, { method: "PATCH" });
+            const res = await fetch(`${API_BASE}/api/exams/${examId}/status?status=${status}`, { method: "PATCH", credentials: 'include' });
             if (!res.ok) throw new Error("Failed to update status");
             fetchExams();
         } catch (err) {

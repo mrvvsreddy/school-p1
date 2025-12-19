@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 export default function AdminLoginPage() {
     const router = useRouter();
     const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -22,7 +23,7 @@ export default function AdminLoginPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include', // Important: send/receive cookies
-                body: JSON.stringify({ email })
+                body: JSON.stringify({ email, password })
             });
 
             const data = await res.json();
@@ -39,7 +40,17 @@ export default function AdminLoginPage() {
                     router.push('/school-admin');
                 }, 300);
             } else {
-                setError(data.detail || data.message || 'Login failed');
+                if (data.detail) {
+                    if (Array.isArray(data.detail)) {
+                        setError(data.detail.map((err: any) => err.msg).join(', '));
+                    } else if (typeof data.detail === 'object') {
+                        setError(JSON.stringify(data.detail));
+                    } else {
+                        setError(String(data.detail));
+                    }
+                } else {
+                    setError(data.message || 'Login failed');
+                }
             }
 
         } catch (err) {
@@ -76,6 +87,20 @@ export default function AdminLoginPage() {
                                 required
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#C4A35A] focus:border-transparent outline-none transition-all"
                                 placeholder="admin@school.edu"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Password
+                            </label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#C4A35A] focus:border-transparent outline-none transition-all"
+                                placeholder="••••••••"
                             />
                         </div>
 

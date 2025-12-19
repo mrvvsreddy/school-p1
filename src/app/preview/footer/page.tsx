@@ -136,7 +136,7 @@ export default function FooterPreviewPage() {
         <main className="min-h-screen bg-white">
             {/* Contact Info Banner - Same as Footer.tsx */}
             <section className="bg-[#C4A35A]">
-                <div className="container mx-auto px-6 py-6">
+                <div className="container mx-auto px-6 py-4 md:py-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center md:text-left">
                         <div className="flex items-center justify-center md:justify-start gap-3">
                             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white">
@@ -179,10 +179,10 @@ export default function FooterPreviewPage() {
             {/* Footer Preview - Dark section like Footer.tsx */}
             <section className="bg-[#1A1A1A] py-8">
                 <div className="container mx-auto px-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                         {/* Logo & Social Links */}
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                            <div className="flex items-center gap-3 mb-4">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="col-span-2 text-center md:text-left">
+                            <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
                                 {data.logo?.image ? (
                                     <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#C4A35A]">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -198,7 +198,7 @@ export default function FooterPreviewPage() {
                                     <p className="text-[8px] text-[#888] tracking-widest">{data.logo?.subtext || defaultData.logo.subtext}</p>
                                 </div>
                             </div>
-                            <div className="flex gap-2 mt-4">
+                            <div className="flex justify-center md:justify-start gap-2 mt-4">
                                 {data.socialLinks.map((social, i) => (
                                     <div key={i} className="w-8 h-8 rounded-full bg-[#333] flex items-center justify-center hover:bg-[#C4A35A] text-white text-xs cursor-pointer transition-colors">
                                         {socialIcons[social.name.toLowerCase()] || social.name[0]}
@@ -208,7 +208,7 @@ export default function FooterPreviewPage() {
                         </motion.div>
 
                         {/* Quick Links */}
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="text-center md:text-left">
                             <h4 className="text-sm font-semibold text-white mb-4">Quick Links</h4>
                             <ul className="space-y-2">
                                 {data.links.quickLinks.map((link, i) => (
@@ -222,7 +222,7 @@ export default function FooterPreviewPage() {
                         </motion.div>
 
                         {/* Academics */}
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-center md:text-left">
                             <h4 className="text-sm font-semibold text-white mb-4">Academics</h4>
                             <ul className="space-y-2">
                                 {data.links.academics.map((link, i) => (
@@ -236,7 +236,7 @@ export default function FooterPreviewPage() {
                         </motion.div>
 
                         {/* Resources */}
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-center md:text-left">
                             <h4 className="text-sm font-semibold text-white mb-4">Resources</h4>
                             <ul className="space-y-2">
                                 {data.links.resources.map((link, i) => (

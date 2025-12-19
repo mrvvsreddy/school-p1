@@ -36,7 +36,7 @@ export default function ContactsPage() {
             if (filter !== "all") params.append("status", filter);
             if (searchQuery) params.append("search", searchQuery);
 
-            const res = await fetch(`${API_BASE}/api/contacts?${params.toString()}`);
+            const res = await fetch(`${API_BASE}/api/contacts?${params.toString()}`, { credentials: 'include' });
             if (res.ok) {
                 const data = await res.json();
                 setContacts(data.contacts || []);
@@ -57,6 +57,7 @@ export default function ContactsPage() {
         try {
             const res = await fetch(`${API_BASE}/api/contacts/${id}/status?status=${status}`, {
                 method: "PATCH",
+                credentials: 'include'
             });
             if (res.ok) {
                 await fetchContacts();
@@ -76,6 +77,7 @@ export default function ContactsPage() {
         try {
             const res = await fetch(`${API_BASE}/api/contacts/${id}`, {
                 method: "DELETE",
+                credentials: 'include'
             });
             if (res.ok) {
                 fetchContacts();

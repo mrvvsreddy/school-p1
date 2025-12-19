@@ -56,10 +56,10 @@ export default function AdminDashboard() {
         const fetchData = async () => {
             try {
                 const [studentsRes, teachersRes, examsRes, mediaRes] = await Promise.all([
-                    fetch(`${API_BASE}/api/students?page_size=5`).catch(() => null),
-                    fetch(`${API_BASE}/api/teachers?page_size=5`).catch(() => null),
-                    fetch(`${API_BASE}/api/exams?page_size=5`).catch(() => null),
-                    fetch(`${API_BASE}/api/storage/images`).catch(() => null),
+                    fetch(`${API_BASE}/api/students?page_size=5`, { credentials: 'include' }).catch(() => null),
+                    fetch(`${API_BASE}/api/teachers?page_size=5`, { credentials: 'include' }).catch(() => null),
+                    fetch(`${API_BASE}/api/exams?page_size=5`, { credentials: 'include' }).catch(() => null),
+                    fetch(`${API_BASE}/api/storage/images`, { credentials: 'include' }).catch(() => null),
                 ]);
 
                 const students = studentsRes?.ok ? await studentsRes.json() : { students: [], total: 0 };

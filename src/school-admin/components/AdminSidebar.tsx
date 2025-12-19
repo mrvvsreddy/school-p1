@@ -74,11 +74,11 @@ export default function AdminSidebar() {
         const fetchBadges = async () => {
             try {
                 // Fetch applications pending count
-                const appRes = await fetch(`${API_BASE}/api/applications/stats`);
+                const appRes = await fetch(`${API_BASE}/api/applications/stats`, { credentials: 'include' });
                 const appData = appRes.ok ? await appRes.json() : { pending_count: 0 };
 
                 // Fetch contacts new count
-                const contactRes = await fetch(`${API_BASE}/api/contacts/stats`);
+                const contactRes = await fetch(`${API_BASE}/api/contacts/stats`, { credentials: 'include' });
                 const contactData = contactRes.ok ? await contactRes.json() : { new_count: 0 };
 
                 setBadges({

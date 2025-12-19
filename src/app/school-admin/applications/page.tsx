@@ -40,7 +40,7 @@ export default function ApplicationsPage() {
             if (gradeFilter) params.append("grade", gradeFilter);
             if (searchQuery) params.append("search", searchQuery);
 
-            const res = await fetch(`${API_BASE}/api/applications?${params.toString()}`);
+            const res = await fetch(`${API_BASE}/api/applications?${params.toString()}`, { credentials: 'include' });
             if (res.ok) {
                 const data = await res.json();
                 setApplications(data.applications || []);
@@ -61,6 +61,7 @@ export default function ApplicationsPage() {
         try {
             const res = await fetch(`${API_BASE}/api/applications/${id}/status?status=${status}`, {
                 method: "PATCH",
+                credentials: 'include'
             });
             if (res.ok) {
                 fetchApplications();
@@ -76,6 +77,7 @@ export default function ApplicationsPage() {
         try {
             const res = await fetch(`${API_BASE}/api/applications/${id}`, {
                 method: "DELETE",
+                credentials: 'include'
             });
             if (res.ok) {
                 fetchApplications();

@@ -72,7 +72,7 @@ export async function getStudents(filters: StudentFilters = {}): Promise<Student
     const queryString = params.toString();
     const url = `${API_BASE}/api/students${queryString ? '?' + queryString : ''}`;
 
-    const response = await fetch(url);
+    const response = await fetch(url, { credentials: 'include' });
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
@@ -86,7 +86,7 @@ export async function getStudents(filters: StudentFilters = {}): Promise<Student
  * Get a single student by ID
  */
 export async function getStudent(id: string): Promise<Student> {
-    const response = await fetch(`${API_BASE}/api/students/${id}`);
+    const response = await fetch(`${API_BASE}/api/students/${id}`, { credentials: 'include' });
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
@@ -105,6 +105,7 @@ export async function createStudent(student: Omit<Student, 'id' | 'created_at' |
         headers: {
             'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(student),
     });
 
@@ -125,6 +126,7 @@ export async function updateStudent(id: string, student: Partial<Student>): Prom
         headers: {
             'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(student),
     });
 
@@ -143,6 +145,7 @@ export async function deleteStudent(id: string, hardDelete = false): Promise<voi
     const params = hardDelete ? '?hard_delete=true' : '';
     const response = await fetch(`${API_BASE}/api/students/${id}${params}`, {
         method: 'DELETE',
+        credentials: 'include',
     });
 
     if (!response.ok) {
@@ -161,6 +164,7 @@ export async function uploadStudentPhoto(id: string, file: File): Promise<string
     const response = await fetch(`${API_BASE}/api/students/${id}/photo`, {
         method: 'POST',
         body: formData,
+        credentials: 'include',
     });
 
     if (!response.ok) {

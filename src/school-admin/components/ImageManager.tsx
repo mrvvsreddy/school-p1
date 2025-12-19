@@ -138,7 +138,7 @@ export default function ImageManager() {
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch(`${API_BASE}/api/storage/images`);
+            const res = await fetch(`${API_BASE}/api/storage/images`, { credentials: 'include' });
             if (!res.ok) throw new Error("Failed to fetch files");
             const data = await res.json();
             setFiles(data.images || []);
@@ -192,6 +192,7 @@ export default function ImageManager() {
         try {
             const res = await fetch(`${API_BASE}/api/storage/images/${encodeURIComponent(file.path)}`, {
                 method: "DELETE",
+                credentials: 'include'
             });
             if (!res.ok) throw new Error("Failed to delete file");
 

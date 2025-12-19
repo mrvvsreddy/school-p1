@@ -49,7 +49,7 @@ export async function getClasses(filters: ClassFilters = {}): Promise<ClassListR
 
     const url = `${API_BASE}/api/classes${params.toString() ? '?' + params.toString() : ''}`;
 
-    const response = await fetch(url);
+    const response = await fetch(url, { credentials: 'include' });
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({ detail: 'Failed to fetch classes' }));
@@ -63,7 +63,7 @@ export async function getClasses(filters: ClassFilters = {}): Promise<ClassListR
  * Get a single class by ID
  */
 export async function getClass(id: string): Promise<Class> {
-    const response = await fetch(`${API_BASE}/api/classes/${id}`);
+    const response = await fetch(`${API_BASE}/api/classes/${id}`, { credentials: 'include' });
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({ detail: 'Class not found' }));
@@ -77,7 +77,7 @@ export async function getClass(id: string): Promise<Class> {
  * Get students in a class
  */
 export async function getClassStudents(classId: string, page = 1, pageSize = 50) {
-    const response = await fetch(`${API_BASE}/api/classes/${classId}/students?page=${page}&page_size=${pageSize}`);
+    const response = await fetch(`${API_BASE}/api/classes/${classId}/students?page=${page}&page_size=${pageSize}`, { credentials: 'include' });
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({ detail: 'Failed to fetch students' }));
@@ -94,6 +94,7 @@ export async function createClass(classData: Partial<Class>): Promise<Class> {
     const response = await fetch(`${API_BASE}/api/classes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(classData),
     });
 
@@ -112,6 +113,7 @@ export async function updateClass(id: string, classData: Partial<Class>): Promis
     const response = await fetch(`${API_BASE}/api/classes/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(classData),
     });
 
@@ -129,7 +131,7 @@ export async function updateClass(id: string, classData: Partial<Class>): Promis
 export async function deleteClass(id: string, hardDelete = false): Promise<void> {
     const url = `${API_BASE}/api/classes/${id}${hardDelete ? '?hard_delete=true' : ''}`;
 
-    const response = await fetch(url, { method: 'DELETE' });
+    const response = await fetch(url, { method: 'DELETE', credentials: 'include' });
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({ detail: 'Failed to delete class' }));
