@@ -13,6 +13,9 @@ class ApplicationBase(BaseModel):
     email: str = Field(..., min_length=5, max_length=100)
     phone: str = Field(..., min_length=5, max_length=30)
     grade_applying: str = Field(..., min_length=1, max_length=20)
+    date_of_birth: Optional[date] = None
+    address: Optional[str] = None
+    previous_school: Optional[str] = None
     notes: Optional[str] = None
 
 

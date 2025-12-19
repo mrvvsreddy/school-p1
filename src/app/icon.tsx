@@ -14,6 +14,7 @@ export default async function Icon() {
         });
         const data = await res.json();
         const logoUrl = data.header?.logo?.image;
+        const logoText = data.header?.logo?.text || 'B';
 
         if (logoUrl) {
             // If we have a logo URL, fetch and return it as favicon
@@ -43,11 +44,34 @@ export default async function Icon() {
                 { ...size }
             );
         }
+
+        // Fallback: Generate a text-based favicon with first letter
+        return new ImageResponse(
+            (
+                <div
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#C4A35A',
+                        borderRadius: '50%',
+                        color: 'white',
+                        fontSize: 20,
+                        fontWeight: 'bold',
+                    }}
+                >
+                    {logoText.charAt(0).toUpperCase()}
+                </div>
+            ),
+            { ...size }
+        );
     } catch (error) {
         console.error('Failed to fetch logo for favicon:', error);
     }
 
-    // Fallback: Generate a text-based favicon with "B"
+    // Fallback if fetch fails
     return new ImageResponse(
         (
             <div

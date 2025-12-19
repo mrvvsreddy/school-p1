@@ -14,6 +14,7 @@ export default async function AppleIcon() {
         });
         const data = await res.json();
         const logoUrl = data.header?.logo?.image;
+        const logoText = data.header?.logo?.text || 'B';
 
         if (logoUrl) {
             // If we have a logo URL, fetch and return it as apple icon
@@ -44,11 +45,34 @@ export default async function AppleIcon() {
                 { ...size }
             );
         }
+
+        // Fallback: Generate a text-based icon with first letter
+        return new ImageResponse(
+            (
+                <div
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#C4A35A',
+                        borderRadius: '20%',
+                        color: 'white',
+                        fontSize: 100,
+                        fontWeight: 'bold',
+                    }}
+                >
+                    {logoText.charAt(0).toUpperCase()}
+                </div>
+            ),
+            { ...size }
+        );
     } catch (error) {
         console.error('Failed to fetch logo for apple icon:', error);
     }
 
-    // Fallback: Generate a text-based icon with "B"
+    // Fallback if fetch fails
     return new ImageResponse(
         (
             <div

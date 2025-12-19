@@ -95,8 +95,8 @@ export default function HeaderPreviewPage() {
                         {/* Logo */}
                         <div className="flex flex-col items-center cursor-pointer">
                             {data.logo.image ? (
-                                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white">
-                                    <Image src={data.logo.image} alt="Logo" fill className="object-cover" />
+                                <div className="relative w-12 h-12 rounded-full overflow-hidden">
+                                    <Image src={data.logo.image} alt="Logo" fill className="object-contain" />
                                 </div>
                             ) : (
                                 <div className="w-12 h-12 rounded-full border-2 border-white flex items-center justify-center">
@@ -183,8 +183,8 @@ export default function HeaderPreviewPage() {
                         <div className="p-4 bg-gray-50 rounded-lg">
                             <p className="text-xs text-gray-500 mb-1">Logo Image</p>
                             {data.logo.image ? (
-                                <div className="w-16 h-16 rounded-full overflow-hidden border">
-                                    <Image src={data.logo.image} alt="Logo" fill className="object-cover" />
+                                <div className="w-16 h-16 border rounded bg-gray-100 relative">
+                                    <Image src={data.logo.image} alt="Logo" fill className="object-contain" />
                                 </div>
                             ) : (
                                 <p className="text-sm text-gray-400 italic">No image</p>

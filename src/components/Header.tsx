@@ -109,8 +109,8 @@ export default function Header() {
                 >
                     <Link href="/" className="flex flex-col items-center">
                         {data.logo.image ? (
-                            <div className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 lg:w-16 lg:h-16 rounded-full overflow-hidden border-2 border-white">
-                                <Image src={data.logo.image} alt="School Logo" fill className="object-cover" />
+                            <div className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 lg:w-16 lg:h-16 rounded-full overflow-hidden">
+                                <Image src={data.logo.image} alt="School Logo" fill className="object-contain" />
                             </div>
                         ) : (
                             <div

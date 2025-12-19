@@ -341,7 +341,7 @@ export default function ApplyPage() {
                                     <button
                                         type="submit"
                                         disabled={submitting}
-                                        className="w-full bg-gradient-to-r from-[#7b1fa2] to-[#9c27b0] text-white py-4 rounded-xl font-semibold hover:shadow-lg hover:shadow-[#7b1fa2]/30 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                                        className="w-full bg-gradient-to-r from-[#7b1fa2] to-[#9c27b0] text-white py-4 rounded-xl font-semibold hover:shadow-lg hover:shadow-[#7b1fa2]/30 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 cursor-pointer"
                                     >
                                         {submitting ? (
                                             <>
