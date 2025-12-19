@@ -76,7 +76,7 @@ export default function AddExamModal({ isOpen, onClose, onAdd, editExam, onUpdat
         if (isOpen) {
             if (editExam) {
                 // Parse API format to form format
-                setFormData({ // eslint-disable-line react-hooks/set-state-in-effect
+                setFormData({
                     subject: editExam.subject || "",
                     grade: editExam.grade || "Grade 10-A",
                     academicYear: editExam.academic_year || "2024-2025",
