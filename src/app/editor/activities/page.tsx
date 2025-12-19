@@ -108,6 +108,7 @@ export default function ActivitiesEditorPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ sections: { activities: data } }),
+                credentials: 'include'
             });
             if (!res.ok) throw new Error("Failed to save");
             alert("Changes published successfully!");

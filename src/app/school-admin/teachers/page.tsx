@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { getTeachers, deleteTeacher, Teacher } from "@/school-admin/services/teacherService";
 import TeacherDetailModal from "@/school-admin/components/TeacherDetailModal";
 import AddTeacherModal from "@/school-admin/components/AddTeacherModal";
@@ -168,10 +169,12 @@ export default function TeachersPage() {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 {teacher.photo_url ? (
-                                                    <img
+                                                    <Image
                                                         src={teacher.photo_url}
                                                         alt={teacher.name}
-                                                        className="w-9 h-9 rounded-full object-cover"
+                                                        width={36}
+                                                        height={36}
+                                                        className="rounded-full object-cover"
                                                     />
                                                 ) : (
                                                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8B7355] to-[#C4A35A] flex items-center justify-center text-white font-medium text-sm">

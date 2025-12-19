@@ -117,6 +117,7 @@ export default function AdmissionsEditorPage() {
                         fees: { structure: data.feeStructure, note: data.feeNote }
                     }
                 }),
+                credentials: 'include'
             });
             if (!res.ok) throw new Error("Failed to save");
             alert("Changes published successfully!");

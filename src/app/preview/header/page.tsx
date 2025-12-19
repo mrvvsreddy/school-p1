@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 interface NavLink {
     name: string;
@@ -95,8 +96,7 @@ export default function HeaderPreviewPage() {
                         <div className="flex flex-col items-center cursor-pointer">
                             {data.logo.image ? (
                                 <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={data.logo.image} alt="Logo" className="w-full h-full object-cover" />
+                                    <Image src={data.logo.image} alt="Logo" fill className="object-cover" />
                                 </div>
                             ) : (
                                 <div className="w-12 h-12 rounded-full border-2 border-white flex items-center justify-center">
@@ -163,8 +163,8 @@ export default function HeaderPreviewPage() {
                             <div
                                 key={i}
                                 className={`px-3 py-1.5 border rounded-full text-sm flex items-center gap-2 ${link.visible !== false
-                                        ? 'bg-white border-gray-200 text-[#333]'
-                                        : 'bg-gray-100 border-gray-300 text-gray-400 line-through'
+                                    ? 'bg-white border-gray-200 text-[#333]'
+                                    : 'bg-gray-100 border-gray-300 text-gray-400 line-through'
                                     }`}
                             >
                                 <span>{link.name}</span>
@@ -184,8 +184,7 @@ export default function HeaderPreviewPage() {
                             <p className="text-xs text-gray-500 mb-1">Logo Image</p>
                             {data.logo.image ? (
                                 <div className="w-16 h-16 rounded-full overflow-hidden border">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={data.logo.image} alt="Logo" className="w-full h-full object-cover" />
+                                    <Image src={data.logo.image} alt="Logo" fill className="object-cover" />
                                 </div>
                             ) : (
                                 <p className="text-sm text-gray-400 italic">No image</p>

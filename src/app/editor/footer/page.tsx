@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface FooterLink {
     name: string;
@@ -63,7 +64,6 @@ export default function FooterEditorPage() {
     const [isResizing, setIsResizing] = useState(false);
     const [fullscreenPreview, setFullscreenPreview] = useState(false);
     const [previewKey, setPreviewKey] = useState(0);
-    const [previewZoom, setPreviewZoom] = useState(100);
     const [previewHeight, setPreviewHeight] = useState(600);
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
 
@@ -77,7 +77,7 @@ export default function FooterEditorPage() {
         const fetchData = async () => {
             try {
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-                const res = await fetch(`${apiUrl}/api/pages/shared`);
+                const res = await fetch(`${apiUrl}/api/pages/footer`, { credentials: 'include' });
                 const content = await res.json();
                 const footer = content.footer || {};
 
@@ -143,7 +143,8 @@ export default function FooterEditorPage() {
             const res = await fetch(`${apiUrl}/api/pages/shared/footer`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
+                body: JSON.stringify({ sections: { footer: data } }),
+                credentials: 'include'
             });
 
             if (res.ok) {
@@ -198,7 +199,7 @@ export default function FooterEditorPage() {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
             const formData = new FormData();
             formData.append("file", file);
-            const res = await fetch(`${apiUrl}/api/editor/upload`, { method: "POST", body: formData });
+            const res = await fetch(`${apiUrl}/api/editor/upload`, { method: "POST", body: formData, credentials: 'include' });
             if (res.ok) {
                 const result = await res.json();
                 setData({ ...data, logo: { ...data.logo, image: result.url } });
@@ -212,8 +213,7 @@ export default function FooterEditorPage() {
         }
     };
 
-    const zoomIn = () => setPreviewZoom(z => Math.min(z + 10, 100));
-    const zoomOut = () => setPreviewZoom(z => Math.max(z - 10, 50));
+
 
     if (loading) return <div className="flex items-center justify-center min-h-screen bg-gray-50"><div className="w-8 h-8 border-2 border-[#C4A35A]/30 border-t-[#C4A35A] rounded-full animate-spin"></div></div>;
 
@@ -267,8 +267,7 @@ export default function FooterEditorPage() {
                                     <div>
                                         <label className="block text-sm font-medium text-gray-600 mb-2">Preview</label>
                                         <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#C4A35A]">
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={data.logo.image} alt="Logo" className="w-full h-full object-cover" />
+                                            <Image src={data.logo.image} alt="Logo" fill className="object-cover" />
                                         </div>
                                     </div>
                                 )}
@@ -395,12 +394,9 @@ export default function FooterEditorPage() {
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                                     </button>
                                 </div>
-                                <span className="text-xs text-gray-400">({previewZoom}%)</span>
+                                <span className="text-xs text-gray-400"></span>
                             </div>
                             <div className="flex items-center gap-1">
-                                <button onClick={zoomOut} className="p-1.5 hover:bg-gray-100 rounded text-gray-600" title="Zoom Out"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" /></svg></button>
-                                <span className="text-xs text-gray-500 w-8 text-center select-none">{previewZoom}%</span>
-                                <button onClick={zoomIn} className="p-1.5 hover:bg-gray-100 rounded text-gray-600" title="Zoom In"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" /></svg></button>
                                 <div className="w-px h-4 bg-gray-300 mx-1"></div>
                                 <button onClick={() => setPreviewKey(k => k + 1)} className="p-1.5 hover:bg-gray-100 rounded text-gray-600" title="Refresh"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
                                 <button onClick={() => setFullscreenPreview(true)} className="p-1.5 hover:bg-gray-100 rounded text-gray-600" title="Fullscreen"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg></button>
@@ -410,8 +406,6 @@ export default function FooterEditorPage() {
                             <div className="bg-white shadow-xl transition-all duration-200 origin-top" style={{
                                 width: viewMode === 'desktop' ? '1280px' : '375px',
                                 height: `${previewHeight}px`,
-                                transform: `scale(${previewZoom / 100})`,
-                                marginBottom: `-${previewHeight * (1 - previewZoom / 100)}px`
                             }}>
                                 <iframe ref={iframeRef} key={previewKey} src={previewUrl} className="w-full h-full border-0" title="Preview" />
                             </div>

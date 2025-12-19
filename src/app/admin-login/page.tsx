@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
             } else {
                 if (data.detail) {
                     if (Array.isArray(data.detail)) {
-                        setError(data.detail.map((err: any) => err.msg).join(', '));
+                        setError(data.detail.map((err: { msg: string }) => err.msg).join(', '));
                     } else if (typeof data.detail === 'object') {
                         setError(JSON.stringify(data.detail));
                     } else {

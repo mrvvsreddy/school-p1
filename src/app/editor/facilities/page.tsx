@@ -108,6 +108,7 @@ export default function FacilitiesEditorPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ sections: { facilities: data } }),
+                credentials: 'include'
             });
             if (!res.ok) throw new Error("Failed to save");
             alert("Changes published successfully!");
@@ -139,10 +140,7 @@ export default function FacilitiesEditorPage() {
         setData({ ...data, facilities: data.facilities.filter((_, i) => i !== index) });
     };
 
-    const updateFacilityFeatures = (index: number, featuresString: string) => {
-        const features = featuresString.split(",").map(f => f.trim()).filter(f => f);
-        updateFacility(index, "features", features);
-    };
+
 
     const addFacilityFeature = (facilityIndex: number) => {
         const newFacilities = [...data.facilities];

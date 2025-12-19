@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { AboutData } from "@/data/types";
@@ -167,7 +168,7 @@ export default function AboutPage() {
               >
                 <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#C4A35A] to-[#A38842] flex items-center justify-center text-white text-3xl font-bold overflow-hidden relative">
                   {leader.image ? (
-                    <img src={leader.image} alt={leader.name} className="w-full h-full object-cover" />
+                    <Image src={leader.image} alt={leader.name} fill className="object-cover" />
                   ) : (
                     leader.name.split(' ').map(n => n[0]).join('')
                   )}

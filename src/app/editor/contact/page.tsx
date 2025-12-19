@@ -91,6 +91,7 @@ export default function ContactEditorPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ sections: { contact: data } }),
+                credentials: 'include'
             });
             if (!res.ok) throw new Error("Failed to save");
             alert("Changes published successfully!");

@@ -26,12 +26,7 @@ export default function Hero({ slides }: HeroProps) {
         setTimeout(() => setIsAutoPlaying(true), 10000);
     };
 
-    const scrollToContent = () => {
-        const aboutSection = document.getElementById("about");
-        if (aboutSection) {
-            aboutSection.scrollIntoView({ behavior: "smooth" });
-        }
-    };
+
 
     useEffect(() => {
         if (!isAutoPlaying || !slides || slides.length === 0) return;
@@ -78,15 +73,19 @@ export default function Hero({ slides }: HeroProps) {
                             </div>
                         ) : (
                             <div className="relative h-full w-full">
-                                <Image
-                                    src={slide.image}
-                                    alt={slide.title}
-                                    fill
-                                    className="object-cover"
-                                    priority={index === 0}
-                                    sizes="100vw"
-                                    quality={90}
-                                />
+                                {slide.image ? (
+                                    <Image
+                                        src={slide.image}
+                                        alt={slide.title}
+                                        fill
+                                        className="object-cover"
+                                        priority={index === 0}
+                                        sizes="100vw"
+                                        quality={90}
+                                    />
+                                ) : (
+                                    <div className="absolute inset-0 bg-neutral-900" />
+                                )}
                                 <div className="absolute inset-0 bg-black/30" /> {/* Image specific overlay */}
                             </div>
                         )}

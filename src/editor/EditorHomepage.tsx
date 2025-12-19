@@ -109,7 +109,7 @@ export default function EditorHomepage() {
 
     useEffect(() => {
         // Fetch content to get images for each section
-        fetch("/api/content")
+        fetch("/api/content", { credentials: 'include' })
             .then((res) => res.json())
             .then((data) => {
                 const images: Record<string, string> = {};

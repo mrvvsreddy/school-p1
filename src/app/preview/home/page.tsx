@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+
 import Image from "next/image";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Hero from "@/components/sections/Hero";
 
 // Types
 interface HeroSlide { id: number; title: string; subtitle: string; image: string; }
@@ -30,13 +31,12 @@ const defaultData: HomeData = {
 
 export default function HomePreviewPage() {
     const [data, setData] = useState<HomeData>(defaultData);
-    const [currentSlide, setCurrentSlide] = useState(0);
 
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {
             if (event.data?.type === "HOME_PREVIEW_UPDATE" && event.data.data) {
                 setData(prev => ({ ...prev, ...event.data.data }));
-                setCurrentSlide(0);
+
             }
         };
         window.addEventListener("message", handleMessage);
@@ -57,13 +57,9 @@ export default function HomePreviewPage() {
         };
     }, []);
 
-    useEffect(() => {
-        if (data.hero.slides.length <= 1) return;
-        const timer = setInterval(() => setCurrentSlide(prev => (prev + 1) % data.hero.slides.length), 5000);
-        return () => clearInterval(timer);
-    }, [data.hero.slides.length]);
 
-    const visibleButtons = data.hero.buttons.filter(btn => btn.visible);
+
+
     const defaultStats = [{ number: "25+", label: "Years" }, { number: "1500+", label: "Students" }, { number: "80+", label: "Teachers" }, { number: "100%", label: "Pass Rate" }];
 
 
@@ -72,34 +68,7 @@ export default function HomePreviewPage() {
             <Header />
 
             {/* HERO SECTION */}
-            <section className="relative h-[70vh] min-h-[400px] overflow-hidden bg-[#1a1a1a]">
-                {data.hero.slides.map((slide, index) => (
-                    <motion.div key={slide.id || index} className="absolute inset-0" initial={false} animate={{ opacity: index === currentSlide ? 1 : 0 }} transition={{ duration: 1 }} style={{ zIndex: index === currentSlide ? 1 : 0 }}>
-                        {slide.image ? <Image src={slide.image} alt={slide.title} fill className="object-cover" sizes="100vw" /> : <div className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-900" />}
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/60" />
-                    </motion.div>
-                ))}
-                <div className="relative z-20 h-full flex items-center justify-center text-center px-6">
-                    <div className="max-w-4xl">
-                        <motion.h1 key={`title-${currentSlide}`} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-3xl md:text-5xl font-bold text-white mb-4" style={{ fontFamily: "var(--font-playfair)" }}>
-                            {data.hero.slides[currentSlide]?.title || "Title"}
-                        </motion.h1>
-                        <motion.p key={`sub-${currentSlide}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="text-white/90 text-base md:text-lg max-w-2xl mx-auto mb-8">
-                            {data.hero.slides[currentSlide]?.subtitle || "Subtitle"}
-                        </motion.p>
-                        {visibleButtons.length > 0 && (
-                            <div className="flex flex-wrap justify-center gap-4">
-                                {visibleButtons.map(btn => (<Link key={btn.id} href={btn.url || "#"} className="px-6 py-2.5 text-white font-semibold rounded hover:opacity-90" style={{ backgroundColor: btn.color }}>{btn.text}</Link>))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-                {data.hero.slides.length > 1 && (
-                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-                        {data.hero.slides.map((_, i) => (<button key={i} onClick={() => setCurrentSlide(i)} className={`h-2.5 rounded-full transition-all ${i === currentSlide ? "bg-[#C4A35A] w-6" : "bg-white/50 w-2.5"}`} />))}
-                    </div>
-                )}
-            </section>
+            <Hero slides={data.hero.slides} />
 
             {/* WELCOME SECTION */}
             <section className="py-16 bg-white">

@@ -46,8 +46,7 @@ const defaultData: AboutData = {
 // Icons (Reused from Home Editor)
 const TrashIcon = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>;
 const ChevronIcon = ({ open }: { open: boolean }) => <svg className={`w-5 h-5 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>;
-const ZoomInIcon = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" /></svg>;
-const ZoomOutIcon = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" /></svg>;
+
 
 export default function AboutEditorPage() {
     const [data, setData] = useState<AboutData>(defaultData);
@@ -59,7 +58,7 @@ export default function AboutEditorPage() {
     const [fullscreenPreview, setFullscreenPreview] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
     const [previewKey, setPreviewKey] = useState(0);
-    const [previewZoom, setPreviewZoom] = useState(50);
+
     const [openSections, setOpenSections] = useState({ story: true, milestones: false, foundation: false, leadership: false });
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -80,7 +79,7 @@ export default function AboutEditorPage() {
         const fetchData = async () => {
             try {
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-                const res = await fetch(`${apiUrl}/api/pages/about`);
+                const res = await fetch(`${apiUrl}/api/pages/about`, { credentials: 'include' });
                 const content = await res.json();
                 const about = content.about || {};
 
@@ -130,7 +129,8 @@ export default function AboutEditorPage() {
             const res = await fetch(`${apiUrl}/api/pages/about/batch`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ sections: { about: data } })
+                body: JSON.stringify({ sections: { about: data } }),
+                credentials: 'include'
             });
 
             if (res.ok) {
@@ -153,7 +153,7 @@ export default function AboutEditorPage() {
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
             const formData = new FormData(); formData.append("file", file);
-            const res = await fetch(`${apiUrl}/api/editor/upload`, { method: "POST", body: formData });
+            const res = await fetch(`${apiUrl}/api/editor/upload`, { method: "POST", body: formData, credentials: 'include' });
             if (res.ok) {
                 const result = await res.json();
                 updateLeader(index, "image", result.url);
@@ -178,9 +178,7 @@ export default function AboutEditorPage() {
     const addLeader = () => setData({ ...data, leadership: [...data.leadership, { name: "New Leader", role: "Role", exp: "Experience" }] });
     const removeLeader = (i: number) => setData({ ...data, leadership: data.leadership.filter((_, idx) => idx !== i) });
 
-    // Zoom controls
-    const zoomIn = () => setPreviewZoom(z => Math.min(z + 10, 100));
-    const zoomOut = () => setPreviewZoom(z => Math.max(z - 10, 30));
+
 
     if (loading) return <div className="flex items-center justify-center min-h-screen bg-gray-50"><div className="w-8 h-8 border-2 border-[#C4A35A]/30 border-t-[#C4A35A] rounded-full animate-spin"></div></div>;
 
@@ -329,12 +327,7 @@ export default function AboutEditorPage() {
                     <div style={{ width: `${previewWidth}%` }} className="sticky top-[80px] h-[calc(100vh-120px)] flex-shrink-0">
                         <div className="bg-white rounded-xl border border-gray-200 shadow-sm h-full overflow-hidden flex flex-col">
                             <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
-                                <div className="flex items-center gap-2"><span className="text-sm text-gray-600 font-medium">{sectionName} Preview</span><span className="text-xs text-gray-400">({previewZoom}%)</span></div>
                                 <div className="flex items-center gap-1">
-                                    <button onClick={zoomOut} className="p-1.5 hover:bg-gray-200 rounded" title="Zoom Out"><ZoomOutIcon /></button>
-                                    <span className="text-xs text-gray-500 w-8 text-center">{previewZoom}%</span>
-                                    <button onClick={zoomIn} className="p-1.5 hover:bg-gray-200 rounded" title="Zoom In"><ZoomInIcon /></button>
-                                    <div className="w-px h-4 bg-gray-300 mx-1"></div>
                                     <button onClick={() => setPreviewKey(k => k + 1)} className="p-1.5 hover:bg-gray-200 rounded" title="Refresh"><svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
                                     <button onClick={() => setFullscreenPreview(true)} className="p-1.5 hover:bg-gray-200 rounded" title="Fullscreen"><svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m5 5v-4m0 4h-4" /></svg></button>
                                 </div>
@@ -346,11 +339,8 @@ export default function AboutEditorPage() {
                                     src={previewUrl}
                                     className="border-0 bg-white"
                                     style={{
-                                        width: `${10000 / previewZoom}%`,
+                                        width: '100%',
                                         height: `${previewHeight}px`,
-                                        transform: `scale(${previewZoom / 100})`,
-                                        transformOrigin: 'top left',
-                                        marginBottom: `-${previewHeight * (1 - previewZoom / 100)}px`
                                     }}
                                 />
                             </div>

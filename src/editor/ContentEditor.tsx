@@ -16,7 +16,7 @@ export default function ContentEditor() {
     const [activeTab, setActiveTab] = useState("hero");
 
     useEffect(() => {
-        fetch("/api/content")
+        fetch("/api/content", { credentials: 'include' })
             .then((res) => res.json())
             .then((data) => {
                 setContent(data);
@@ -35,6 +35,7 @@ export default function ContentEditor() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(content),
+                credentials: 'include'
             });
             if (res.ok) {
                 alert("Saved successfully!");

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { updateStudent, Student } from "@/school-admin/services/studentService";
 
 interface ExamResult {
@@ -109,10 +110,12 @@ export default function StudentDetailModal({ student, className, onClose, onEdit
                 <div className="p-5 border-b border-gray-100 flex items-start justify-between bg-gray-50/50">
                     <div className="flex gap-5">
                         {student.photo_url ? (
-                            <img
+                            <Image
                                 src={student.photo_url}
                                 alt={student.name}
-                                className="w-20 h-20 rounded-xl object-cover shadow-lg"
+                                width={80}
+                                height={80}
+                                className="rounded-xl object-cover shadow-lg"
                             />
                         ) : (
                             <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-[#C4A35A] to-[#A38842] flex items-center justify-center shadow-lg transform -translate-y-1">

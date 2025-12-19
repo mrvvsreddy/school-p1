@@ -52,6 +52,7 @@ export default function MediaUpload({ value, onChange, accept = "image/*,video/*
             const res = await fetch(`${API_BASE}/api/editor/upload`, {
                 method: "POST",
                 body: formData,
+                credentials: 'include'
             });
 
             if (!res.ok) throw new Error("Upload failed");

@@ -72,10 +72,11 @@ export default function AddExamModal({ isOpen, onClose, onAdd, editExam, onUpdat
     const [errors, setErrors] = useState<Partial<Record<keyof typeof formData, string>>>({});
 
     useEffect(() => {
+
         if (isOpen) {
             if (editExam) {
                 // Parse API format to form format
-                setFormData({
+                setFormData({ // eslint-disable-line react-hooks/set-state-in-effect
                     subject: editExam.subject || "",
                     grade: editExam.grade || "Grade 10-A",
                     academicYear: editExam.academic_year || "2024-2025",

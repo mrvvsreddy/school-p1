@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { Teacher, updateTeacher, uploadTeacherPhoto } from "@/school-admin/services/teacherService";
 import { getClasses, Class } from "@/school-admin/services/classService";
 
@@ -100,7 +101,7 @@ export default function TeacherDetailModal({ teacher, onClose, onEdit, onDelete 
                 <div className="p-5 border-b border-gray-100 flex items-start justify-between bg-gray-50/50">
                     <div className="flex gap-5">
                         {teacher.photo_url ? (
-                            <img src={teacher.photo_url} alt={teacher.name} className="w-20 h-20 rounded-xl object-cover shadow-lg" />
+                            <Image src={teacher.photo_url} alt={teacher.name} width={80} height={80} className="rounded-xl object-cover shadow-lg" />
                         ) : (
                             <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-[#8B7355] to-[#C4A35A] flex items-center justify-center shadow-lg">
                                 <span className="text-3xl font-bold text-white">{teacher.name.charAt(0)}</span>
@@ -164,10 +165,12 @@ export default function TeacherDetailModal({ teacher, onClose, onEdit, onDelete 
                                         <h4 className="text-sm font-semibold text-gray-900 mb-4">Profile Photo</h4>
                                         <div className="flex items-center gap-6">
                                             {editForm.photo_url || teacher.photo_url ? (
-                                                <img
-                                                    src={editForm.photo_url || teacher.photo_url}
+                                                <Image
+                                                    src={editForm.photo_url || teacher.photo_url || ""}
                                                     alt={teacher.name}
-                                                    className="w-24 h-24 rounded-xl object-cover shadow-md"
+                                                    width={96}
+                                                    height={96}
+                                                    className="rounded-xl object-cover shadow-md"
                                                 />
                                             ) : (
                                                 <div className="w-24 h-24 rounded-xl bg-gradient-to-br from-[#8B7355] to-[#C4A35A] flex items-center justify-center shadow-md">

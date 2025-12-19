@@ -1,16 +1,14 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
-
 // Define interfaces to match database structure
 interface NavLink {
     name: string;
     href: string;
     visible?: boolean;
 }
-
 interface HeaderData {
     logo: {
         image: string;
@@ -19,7 +17,6 @@ interface HeaderData {
     };
     navLinks: NavLink[];
 }
-
 const defaultData: HeaderData = {
     logo: {
         image: "",
@@ -35,12 +32,10 @@ const defaultData: HeaderData = {
         { name: "Contact", href: "/contact", visible: true },
     ]
 };
-
 export default function Header() {
     const [data, setData] = useState<HeaderData>(defaultData);
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
     // Fetch header data from database
     useEffect(() => {
         const fetchHeaderData = async () => {
@@ -49,7 +44,6 @@ export default function Header() {
                 const res = await fetch(`${apiUrl}/api/pages/shared`);
                 const json = await res.json();
                 const headerData = json.header || {};
-
                 if (headerData && Object.keys(headerData).length > 0) {
                     setData({
                         logo: {
@@ -66,33 +60,29 @@ export default function Header() {
         };
         fetchHeaderData();
     }, []);
-
     // Handle scroll
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 50);
         };
-
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
-
     // Filter visible nav links
     const visibleNavLinks = data.navLinks.filter(link => link.visible !== false);
-
     return (
         <motion.header
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
             className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-                ? "bg-white/95 backdrop-blur-md shadow-lg py-3"
-                : "bg-transparent py-5"
+                ? "bg-white/95 backdrop-blur-md shadow-lg py-1.5 md:py-2 lg:py-3"
+                : "bg-transparent py-2 md:py-3 lg:py-5"
                 }`}
         >
-            <div className="container mx-auto px-6 flex items-center justify-between">
+            <div className="container mx-auto px-3 sm:px-4 md:px-6 flex items-center justify-between">
                 {/* Left Navigation */}
-                <nav className="hidden lg:flex items-center gap-8">
+                <nav className="hidden md:flex items-center gap-3 md:gap-4 lg:gap-8">
                     {visibleNavLinks.slice(0, 3).map((link, index) => (
                         <motion.div
                             key={link.name}
@@ -103,14 +93,13 @@ export default function Header() {
                             <Link
                                 href={link.href}
                                 className={`nav-link ${isScrolled ? "!text-[#333]" : "text-white"
-                                    } hover:text-[#C4A35A] transition-colors`}
+                                    } hover:text-[#C4A35A] transition-colors text-xs sm:text-sm md:text-base`}
                             >
                                 {link.name}
                             </Link>
                         </motion.div>
                     ))}
                 </nav>
-
                 {/* Logo */}
                 <motion.div
                     initial={{ scale: 0, opacity: 0 }}
@@ -120,18 +109,17 @@ export default function Header() {
                 >
                     <Link href="/" className="flex flex-col items-center">
                         {data.logo.image ? (
-                            <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={data.logo.image} alt="School Logo" className="w-full h-full object-cover" />
+                            <div className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 lg:w-16 lg:h-16 rounded-full overflow-hidden border-2 border-white">
+                                <Image src={data.logo.image} alt="School Logo" fill className="object-cover" />
                             </div>
                         ) : (
                             <div
-                                className={`relative w-16 h-16 rounded-full border-2 ${isScrolled ? "border-[#333]" : "border-white"
+                                className={`relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 lg:w-16 lg:h-16 rounded-full border-2 ${isScrolled ? "border-[#333]" : "border-white"
                                     } flex items-center justify-center`}
                             >
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <span
-                                        className={`text-2xl font-bold ${isScrolled ? "text-[#333]" : "text-white"
+                                        className={`text-lg sm:text-xl md:text-lg lg:text-2xl font-bold ${isScrolled ? "text-[#333]" : "text-white"
                                             }`}
                                         style={{ fontFamily: "var(--font-playfair)" }}
                                     >
@@ -141,22 +129,21 @@ export default function Header() {
                             </div>
                         )}
                         <span
-                            className={`mt-1 text-xs font-semibold tracking-widest ${isScrolled ? "text-[#333]" : "text-white"
+                            className={`mt-0.5 sm:mt-1 text-[8px] sm:text-[10px] md:text-xs font-semibold tracking-widest ${isScrolled ? "text-[#333]" : "text-white"
                                 }`}
                         >
                             {data.logo.text}
                         </span>
                         <span
-                            className={`text-[8px] tracking-[0.2em] ${isScrolled ? "text-[#666]" : "text-white/80"
+                            className={`text-[6px] sm:text-[7px] md:text-[8px] tracking-[0.2em] ${isScrolled ? "text-[#666]" : "text-white/80"
                                 }`}
                         >
                             {data.logo.subtext}
                         </span>
                     </Link>
                 </motion.div>
-
                 {/* Right Navigation */}
-                <nav className="hidden lg:flex items-center gap-8">
+                <nav className="hidden md:flex items-center gap-3 md:gap-4 lg:gap-8">
                     {visibleNavLinks.slice(3).map((link, index) => (
                         <motion.div
                             key={link.name}
@@ -168,20 +155,19 @@ export default function Header() {
                             <Link
                                 href={link.href}
                                 className={`nav-link flex items-center gap-1 ${isScrolled ? "!text-[#333]" : "text-white"
-                                    } hover:text-[#C4A35A] transition-colors`}
+                                    } hover:text-[#C4A35A] transition-colors text-xs sm:text-sm md:text-base`}
                             >
                                 {link.name}
                             </Link>
                         </motion.div>
                     ))}
                 </nav>
-
                 {/* Mobile Menu Button */}
                 <button
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className={`lg:hidden p-2 ${isScrolled ? "text-[#333]" : "text-white"}`}
+                    className={`lg:hidden p-1 sm:p-1.5 ${isScrolled ? "text-[#333]" : "text-white"}`}
                 >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         {isMobileMenuOpen ? (
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         ) : (
@@ -190,7 +176,6 @@ export default function Header() {
                     </svg>
                 </button>
             </div>
-
             {/* Mobile Menu */}
             <AnimatePresence>
                 {isMobileMenuOpen && (
@@ -198,14 +183,14 @@ export default function Header() {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="lg:hidden bg-white shadow-lg"
+                        className="md:hidden bg-white shadow-lg"
                     >
-                        <nav className="container mx-auto px-6 py-4 flex flex-col gap-4">
+                        <nav className="container mx-auto px-3 sm:px-4 md:px-6 py-2 sm:py-3 flex flex-col gap-2 sm:gap-3">
                             {visibleNavLinks.map((link) => (
                                 <Link
                                     key={link.name}
                                     href={link.href}
-                                    className="text-[#333] py-2 hover:text-[#C4A35A] transition-colors"
+                                    className="text-[#333] py-1 sm:py-1.5 hover:text-[#C4A35A] transition-colors text-xs sm:text-sm"
                                     onClick={() => setIsMobileMenuOpen(false)}
                                 >
                                     {link.name}

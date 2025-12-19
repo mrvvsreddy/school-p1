@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -25,11 +25,7 @@ export default function ContactsPage() {
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
-    useEffect(() => {
-        fetchContacts();
-    }, [filter]);
-
-    const fetchContacts = async () => {
+    const fetchContacts = useCallback(async () => {
         setLoading(true);
         try {
             const params = new URLSearchParams();
@@ -46,7 +42,11 @@ export default function ContactsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filter, searchQuery]);
+
+    useEffect(() => {
+        fetchContacts();
+    }, [fetchContacts]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();

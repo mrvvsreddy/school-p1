@@ -138,7 +138,8 @@ export default function ApplicationEditorPage() {
             const res = await fetch(`${apiUrl}/api/pages/admissions/batch`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ sections: { application_form: data } }),
+                body: JSON.stringify({ sections: { application: data } }),
+                credentials: 'include'
             });
             if (!res.ok) throw new Error("Failed to save");
             alert("Changes published successfully!");

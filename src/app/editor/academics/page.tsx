@@ -137,6 +137,7 @@ export default function AcademicsEditorPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ sections: { academics: data } }),
+                credentials: 'include'
             });
             if (!res.ok) throw new Error("Failed to save");
             alert("Changes published successfully!");
@@ -170,10 +171,7 @@ export default function AcademicsEditorPage() {
         setData({ ...data, grades: newGrades });
     };
 
-    const updateGradeFeatures = (gradeIndex: number, featuresString: string) => {
-        const features = featuresString.split(",").map(f => f.trim()).filter(f => f);
-        updateGrade(gradeIndex, "features", features);
-    };
+
 
     const addGradeFeature = (gradeIndex: number) => {
         const newGrades = [...data.grades];
@@ -489,7 +487,7 @@ export default function AcademicsEditorPage() {
                                                 </div>
                                             ))}
                                             {term.fields.length === 0 && (
-                                                <p className="text-gray-400 text-sm italic text-center py-2">No fields added. Click "+ Add Field" to add custom details.</p>
+                                                <p className="text-gray-400 text-sm italic text-center py-2">No fields added. Click &quot;+ Add Field&quot; to add custom details.</p>
                                             )}
                                         </div>
                                     </div>

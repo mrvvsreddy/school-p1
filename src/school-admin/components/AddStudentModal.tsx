@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { createStudent, uploadStudentPhoto } from "@/school-admin/services/studentService";
 import { getClasses, Class } from "@/school-admin/services/classService";
 
@@ -136,10 +137,12 @@ export default function AddStudentModal({ onClose, onAdd }: AddStudentModalProps
                     <div className="mb-6 flex items-center gap-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
                         <div className="relative">
                             {photoPreview ? (
-                                <img
+                                <Image
                                     src={photoPreview}
                                     alt="Preview"
-                                    className="w-20 h-20 rounded-full object-cover border-2 border-[#C4A35A]"
+                                    width={80}
+                                    height={80}
+                                    className="rounded-full object-cover border-2 border-[#C4A35A]"
                                 />
                             ) : (
                                 <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">

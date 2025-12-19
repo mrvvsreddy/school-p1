@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -28,11 +28,7 @@ export default function ApplicationsPage() {
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
-    useEffect(() => {
-        fetchApplications();
-    }, [filter, gradeFilter]);
-
-    const fetchApplications = async () => {
+    const fetchApplications = useCallback(async () => {
         setLoading(true);
         try {
             const params = new URLSearchParams();
@@ -50,7 +46,11 @@ export default function ApplicationsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filter, gradeFilter, searchQuery]);
+
+    useEffect(() => {
+        fetchApplications();
+    }, [fetchApplications]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();

@@ -20,7 +20,8 @@ export default function AdminHeader() {
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
             try {
-                setUser(JSON.parse(storedUser));
+
+                setUser(JSON.parse(storedUser)); // eslint-disable-line react-hooks/set-state-in-effect
             } catch {
                 console.error("Failed to parse stored user");
             }
