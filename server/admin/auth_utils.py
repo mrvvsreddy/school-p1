@@ -28,7 +28,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 420  # 7 hours
 security = HTTPBearer(auto_error=False)
 
 class TokenData(BaseModel):
-    email: str
+    username: Optional[str] = None
+    email: Optional[str] = None
     user_id: int
     role: str
     exp: datetime
@@ -127,11 +128,13 @@ def verify_token(token: str) -> TokenData:
     
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("username")
         email: str = payload.get("email")
         user_id: int = payload.get("user_id")
         role: str = payload.get("role")
         
-        if email is None or user_id is None:
+        # Require either username or email, and user_id
+        if (username is None and email is None) or user_id is None:
             raise HTTPException(
                 status_code=401,
                 detail="Invalid authentication credentials",
@@ -139,6 +142,7 @@ def verify_token(token: str) -> TokenData:
             )
         
         return TokenData(
+            username=username,
             email=email,
             user_id=user_id,
             role=role,

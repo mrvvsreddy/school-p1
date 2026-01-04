@@ -3,6 +3,7 @@ import json
 import logging
 import sys
 import time
+import threading
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request, Depends, Response
 from fastapi.responses import JSONResponse
@@ -14,6 +15,33 @@ from typing import Dict, Any, List
 
 # Import security middleware
 from security import SecurityHeadersMiddleware
+
+# Self-ping to keep server alive (for platforms like Render)
+def self_ping():
+    """Background thread that pings the server to keep it alive"""
+    import httpx
+    
+    server_url = os.getenv("SERVER_URL")
+    if not server_url:
+        return  # Don't run self-ping if SERVER_URL not configured
+    
+    ping_interval = int(os.getenv("PING_INTERVAL", "300"))  # Default 5 minutes
+    health_url = f"{server_url.rstrip('/')}/health"
+    
+    logger = logging.getLogger(__name__)
+    logger.info(f"Self-ping started: pinging {health_url} every {ping_interval}s")
+    
+    while True:
+        time.sleep(ping_interval)
+        try:
+            with httpx.Client(timeout=30) as client:
+                response = client.get(health_url)
+                if response.status_code == 200:
+                    logger.debug(f"Self-ping successful: {health_url}")
+                else:
+                    logger.warning(f"Self-ping returned status {response.status_code}")
+        except Exception as e:
+            logger.warning(f"Self-ping failed: {e}")
 
 # Configure logging - ensure output is flushed immediately
 logging.basicConfig(
@@ -186,6 +214,12 @@ async def lifespan(app: FastAPI):
             print(f"ERROR:    Failed to connect to Supabase: {e}")
 
             
+    # Start self-ping thread in production
+    if os.getenv("SERVER_URL"):
+        ping_thread = threading.Thread(target=self_ping, daemon=True)
+        ping_thread.start()
+        print("INFO:     Self-ping background thread started")
+    
     yield
     # Shutdown logic
 

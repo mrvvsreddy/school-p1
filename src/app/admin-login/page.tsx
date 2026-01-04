@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 export default function AdminLoginPage() {
     const router = useRouter();
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -23,7 +23,7 @@ export default function AdminLoginPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include', // Important: send/receive cookies
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ username, password })
             });
 
             const data = await res.json();
@@ -78,15 +78,15 @@ export default function AdminLoginPage() {
                     <form onSubmit={handleLogin} className="space-y-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Email Address
+                                Username
                             </label>
                             <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                type="text"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                                 required
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#C4A35A] focus:border-transparent outline-none transition-all"
-                                placeholder="admin@school.edu"
+                                placeholder="admin"
                             />
                         </div>
 
@@ -142,3 +142,4 @@ export default function AdminLoginPage() {
         </div>
     );
 }
+

@@ -8,7 +8,7 @@ import logging
 import sys
 import os
 from fastapi import APIRouter, HTTPException, Depends, Response, Request
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, field_validator
 from typing import Optional
 from datetime import datetime, timedelta
 
@@ -27,8 +27,15 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 # ============= PYDANTIC MODELS =============
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    username: str
     password: str
+    
+    @field_validator('username')
+    @classmethod
+    def username_not_empty(cls, v):
+        if not v or len(v.strip()) == 0:
+            raise ValueError('Username cannot be empty')
+        return v.strip()
     
     @field_validator('password')
     @classmethod
@@ -70,34 +77,34 @@ async def login(login_request: LoginRequest, request: Request, response: Respons
     db = get_supabase()
     
     try:
-        # Check if user exists in database
-        user_result = db.table("admin_users").select("*").eq("email", login_request.email).execute()
+        # Check if user exists in database by username
+        user_result = db.table("admin_users").select("*").eq("username", login_request.username).execute()
         
         if not user_result.data:
             # Record failed attempt and check for lockout
             if record_failed_login(request):
                 raise HTTPException(status_code=429, detail="Too many failed attempts. Please try again later.")
-            logger.warning(f"Login attempt for non-existent email: {login_request.email}")
-            raise HTTPException(status_code=401, detail="Invalid email or password")
+            logger.warning(f"Login attempt for non-existent username: {login_request.username}")
+            raise HTTPException(status_code=401, detail="Invalid username or password")
         
         user = user_result.data[0]
         
         # Verify password
         password_hash = user.get("password_hash")
         if not password_hash:
-            logger.error(f"User {login_request.email} has no password_hash set")
-            raise HTTPException(status_code=401, detail="Invalid email or password")
+            logger.error(f"User {login_request.username} has no password_hash set")
+            raise HTTPException(status_code=401, detail="Invalid username or password")
         
         if not verify_password(login_request.password, password_hash):
             # Record failed attempt and check for lockout
             if record_failed_login(request):
                 raise HTTPException(status_code=429, detail="Too many failed attempts. Please try again later.")
-            logger.warning(f"Invalid password attempt for: {login_request.email}")
-            raise HTTPException(status_code=401, detail="Invalid email or password")
+            logger.warning(f"Invalid password attempt for: {login_request.username}")
+            raise HTTPException(status_code=401, detail="Invalid username or password")
         
         # Check if user is active
         if user.get("status") != "active":
-            logger.warning(f"Inactive user login attempt: {login_request.email}")
+            logger.warning(f"Inactive user login attempt: {login_request.username}")
             raise HTTPException(status_code=403, detail="User account is inactive")
         
         # Update last login
@@ -105,7 +112,8 @@ async def login(login_request: LoginRequest, request: Request, response: Respons
         
         # Create JWT token
         token_data = {
-            "email": user["email"],
+            "username": user.get("username"),
+            "email": user.get("email"),
             "user_id": user["id"],
             "role": user["role"]
         }
@@ -114,7 +122,7 @@ async def login(login_request: LoginRequest, request: Request, response: Respons
         # Clear failed login attempts on successful login
         clear_failed_logins(request)
         
-        logger.info(f"Login successful for {user['email']}")
+        logger.info(f"Login successful for {user.get('username')}")
         
         # Also set cookie as fallback (may not work in all browsers due to cross-origin restrictions)
         try:
@@ -133,7 +141,8 @@ async def login(login_request: LoginRequest, request: Request, response: Respons
         # Return user info AND token (for localStorage storage)
         user_response = {
             "id": user["id"],
-            "email": user["email"],
+            "username": user.get("username"),
+            "email": user.get("email"),
             "name": user["name"],
             "role": user["role"],
             "image_url": user.get("image_url")
