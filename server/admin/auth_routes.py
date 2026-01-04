@@ -8,7 +8,7 @@ import logging
 import sys
 import os
 from fastapi import APIRouter, HTTPException, Depends, Response, Request
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, EmailStr
 from typing import Optional
 from datetime import datetime, timedelta
 
@@ -235,8 +235,9 @@ async def get_admin_users(current_user: TokenData = Depends(require_admin)):
 
 @router.post("/users")
 async def create_admin_user(
-    email: EmailStr,
+    username: str,
     name: str,
+    email: str = None,
     role: str = "admin",
     current_user: TokenData = Depends(require_admin)
 ):
@@ -244,6 +245,7 @@ async def create_admin_user(
     db = get_supabase()
     
     user_data = {
+        "username": username,
         "email": email,
         "name": name,
         "role": role,
@@ -255,7 +257,7 @@ async def create_admin_user(
         return {"success": True, "user": result.data[0]}
     except Exception as e:
         if "duplicate key" in str(e).lower():
-            raise HTTPException(status_code=400, detail="User with this email already exists")
+            raise HTTPException(status_code=400, detail="User with this username already exists")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/users/{user_id}/status")

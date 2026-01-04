@@ -85,10 +85,10 @@ export default function AdminDashboard() {
     }, []);
 
     const stats = [
-        { label: "Students", value: data.students.total, color: "bg-blue-500", href: "/school-admin/student" },
-        { label: "Teachers", value: data.teachers.total, color: "bg-purple-500", href: "/school-admin/teacher" },
-        { label: "Exams", value: data.exams.total, color: "bg-amber-500", href: "/school-admin/exam" },
-        { label: "Media Files", value: data.media.total, color: "bg-green-500", href: "/school-admin/media" },
+        { label: "Students", value: data.students.total, color: "bg-blue-500", href: "/admin/students" },
+        { label: "Teachers", value: data.teachers.total, color: "bg-purple-500", href: "/admin/teachers" },
+        { label: "Exams", value: data.exams.total, color: "bg-amber-500", href: "/admin/exam" },
+        { label: "Media Files", value: data.media.total, color: "bg-green-500", href: "/admin/media" },
     ];
 
     if (loading) {
@@ -127,7 +127,7 @@ export default function AdminDashboard() {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="p-4 border-b border-gray-100 flex items-center justify-between">
                         <h3 className="font-semibold text-[#333]">Recent Students</h3>
-                        <Link href="/school-admin/student" className="text-xs text-[#43a047] hover:underline">View All</Link>
+                        <Link href="/admin/students" className="text-xs text-[#43a047] hover:underline">View All</Link>
                     </div>
                     <div className="divide-y divide-gray-50">
                         {data.students.items.length > 0 ? (
@@ -156,7 +156,7 @@ export default function AdminDashboard() {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="p-4 border-b border-gray-100 flex items-center justify-between">
                         <h3 className="font-semibold text-[#333]">Recent Teachers</h3>
-                        <Link href="/school-admin/teacher" className="text-xs text-[#43a047] hover:underline">View All</Link>
+                        <Link href="/admin/teachers" className="text-xs text-[#43a047] hover:underline">View All</Link>
                     </div>
                     <div className="divide-y divide-gray-50">
                         {data.teachers.items.length > 0 ? (
@@ -185,7 +185,7 @@ export default function AdminDashboard() {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="p-4 border-b border-gray-100 flex items-center justify-between">
                         <h3 className="font-semibold text-[#333]">Recent Exams</h3>
-                        <Link href="/school-admin/exam" className="text-xs text-[#43a047] hover:underline">View All</Link>
+                        <Link href="/admin/exam" className="text-xs text-[#43a047] hover:underline">View All</Link>
                     </div>
                     <div className="divide-y divide-gray-50">
                         {data.exams.items.length > 0 ? (
@@ -214,7 +214,7 @@ export default function AdminDashboard() {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="p-4 border-b border-gray-100 flex items-center justify-between">
                         <h3 className="font-semibold text-[#333]">Media Library</h3>
-                        <Link href="/school-admin/media" className="text-xs text-[#43a047] hover:underline">View All</Link>
+                        <Link href="/admin/media" className="text-xs text-[#43a047] hover:underline">View All</Link>
                     </div>
                     <div className="p-3">
                         {data.media.items.length > 0 ? (

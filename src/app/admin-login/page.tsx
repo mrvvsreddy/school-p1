@@ -37,7 +37,7 @@ export default function AdminLoginPage() {
 
                 // Redirect to admin dashboard
                 setTimeout(() => {
-                    router.push('/school-admin');
+                    router.push('/admin');
                 }, 300);
             } else {
                 if (data.detail) {

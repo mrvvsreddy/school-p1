@@ -7,14 +7,14 @@ import { usePathname, useRouter } from "next/navigation";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const menuItems = [
-    { name: "Dashboard", icon: "dashboard", path: "/school-admin" },
-    { name: "Applications", icon: "applications", path: "/school-admin/applications", badgeType: "applications" },
-    { name: "Contacts", icon: "contacts", path: "/school-admin/contacts", badgeType: "contacts" },
-    { name: "Students", icon: "students", path: "/school-admin/students" },
-    { name: "Teachers", icon: "teachers", path: "/school-admin/teachers" },
-    { name: "Class", icon: "class", path: "/school-admin/class" },
-    { name: "Exam", icon: "exam", path: "/school-admin/exam" },
-    { name: "Media", icon: "media", path: "/school-admin/media" },
+    { name: "Dashboard", icon: "dashboard", path: "/admin" },
+    { name: "Applications", icon: "applications", path: "/admin/applications", badgeType: "applications" },
+    { name: "Contacts", icon: "contacts", path: "/admin/contacts", badgeType: "contacts" },
+    { name: "Students", icon: "students", path: "/admin/students" },
+    { name: "Teachers", icon: "teachers", path: "/admin/teachers" },
+    { name: "Class", icon: "class", path: "/admin/class" },
+    { name: "Exam", icon: "exam", path: "/admin/exam" },
+    { name: "Media", icon: "media", path: "/admin/media" },
 ];
 
 const iconMap: Record<string, React.ReactNode> = {
